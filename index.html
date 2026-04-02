@@ -3,26 +3,617 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Support Bug Tracker — Waalaxy</title>
+  <title>🐛 Support Bug Dashboard — Waalaxy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
+    :root {
+      --bg: #f5f5f3;
+      --surface: #ffffff;
+      --surface2: #f9f9f8;
+      --border: #e8e8e6;
+      --text: #1a1a1a;
+      --text2: #6b6b6b;
+      --text3: #9b9b9b;
+      --open: #ef4444;
+      --progress: #f59e0b;
+      --resolved: #22c55e;
+      --notbug: #94a3b8;
+      --accent: #6366f1;
+      --business: #3b82f6;
+      --lkhackers: #f97316;
+      --prospection: #8b5cf6;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f7f7f5; height: 100vh; display: flex; flex-direction: column; }
-    header { background: #ffffff; border-bottom: 1px solid #e5e5e5; padding: 10px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    header .dot { width: 10px; height: 10px; border-radius: 50%; background: #f97316; display: inline-block; }
-    header h1 { font-size: 15px; font-weight: 600; color: #1a1a1a; }
-    header .badge { margin-left: auto; font-size: 11px; color: #888; background: #f0f0f0; padding: 2px 8px; border-radius: 99px; }
-    .embed-container { flex: 1; width: 100%; overflow: hidden; }
-    .embed-container iframe { width: 100%; height: 100%; border: none; display: block; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-logo { font-size: 22px; }
+    .header-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .header-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .header-badge {
+      font-size: 11px; font-weight: 600;
+      background: #dcfce7; color: #16a34a;
+      padding: 3px 10px; border-radius: 99px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .header-badge::before {
+      content: ''; width: 7px; height: 7px;
+      border-radius: 50%; background: #16a34a;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .kpi.total::after { background: var(--accent); }
+    .kpi.open::after { background: var(--open); }
+    .kpi.progress::after { background: var(--progress); }
+    .kpi.resolved::after { background: var(--resolved); }
+    .kpi.notbug::after { background: var(--notbug); }
+    .kpi.escalated::after { background: #ec4899; }
+    .kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .kpi-value { font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+    .kpi.total .kpi-value { color: var(--accent); }
+    .kpi.open .kpi-value { color: var(--open); }
+    .kpi.progress .kpi-value { color: var(--progress); }
+    .kpi.resolved .kpi-value { color: var(--resolved); }
+    .kpi.notbug .kpi-value { color: var(--notbug); }
+    .kpi.escalated .kpi-value { color: #ec4899; }
+    .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 700;
+      color: var(--text); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .chart-wrap { position: relative; }
+    .legend { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .legend-item {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .legend-label { display: flex; align-items: center; gap: 6px; color: var(--text2); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .legend-count { font-weight: 700; color: var(--text); }
+    .tickets-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .ticket-list { display: flex; flex-direction: column; gap: 8px; }
+    .ticket {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+      align-items: start;
+    }
+    .ticket-title {
+      font-size: 12px; font-weight: 600; color: var(--text);
+      line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ticket-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+    .tag {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .tag-channel-business { background: #dbeafe; color: #1d4ed8; }
+    .tag-channel-lk { background: #ffedd5; color: #c2410c; }
+    .tag-channel-prospection { background: #ede9fe; color: #6d28d9; }
+    .tag-status-open { background: #fee2e2; color: #dc2626; }
+    .tag-status-progress { background: #fef3c7; color: #d97706; }
+    .tag-status-resolved { background: #dcfce7; color: #16a34a; }
+    .tag-label { background: #f1f5f9; color: #475569; }
+    .ticket-links { display: flex; gap: 6px; align-items: center; }
+    .ticket-link {
+      font-size: 10px; color: var(--text3);
+      text-decoration: none; opacity: 0.7;
+    }
+    .ticket-link:hover { opacity: 1; color: var(--accent); }
+    .escalated-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%; background: #ec4899;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .escalations-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .escalations-table th {
+      text-align: left; padding: 8px 10px;
+      color: var(--text3); font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .escalations-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .escalations-table tr:last-child td { border-bottom: none; }
+    .escalations-table tr:hover td { background: var(--surface2); }
+    .clickup-link {
+      font-size: 11px; font-weight: 600;
+      color: var(--accent); text-decoration: none;
+      background: #eef2ff; padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .footer {
+      text-align: center; padding: 20px;
+      font-size: 11px; color: var(--text3);
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    @media (max-width: 1100px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+      .charts-row { grid-template-columns: 1fr 1fr; }
+      .tickets-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .main { padding: 16px; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .header { padding: 12px 16px; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <span class="dot"></span>
-    <h1>🐛 Support Bug Tracker — Waalaxy</h1>
-    <span class="badge">Live · Airtable</span>
-  </header>
-  <div class="embed-container">
-    <iframe src="https://airtable.com/embed/shrCdPhtGRQ9M6yNT" allowfullscreen allow="fullscreen" title="Support Bug Tracker"></iframe>
+
+<header class="header">
+  <div class="header-left">
+    <span class="header-logo">🐛</span>
+    <div>
+      <div class="header-title">Support Bug Dashboard — Waalaxy</div>
+      <div class="header-sub">#support-business · #support-linkedin-hackers · #support-prospection</div>
+    </div>
   </div>
+  <div class="header-badge">Live · Notion</div>
+</header>
+
+<main class="main">
+
+  <div class="kpi-row">
+    <div class="kpi total">
+      <div class="kpi-label">Total Tickets</div>
+      <div class="kpi-value">31</div>
+      <div class="kpi-sub">All time</div>
+    </div>
+    <div class="kpi open">
+      <div class="kpi-label">🔴 Open</div>
+      <div class="kpi-value">7</div>
+      <div class="kpi-sub">Need action</div>
+    </div>
+    <div class="kpi progress">
+      <div class="kpi-label">🟡 In Progress</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-sub">Being worked</div>
+    </div>
+    <div class="kpi resolved">
+      <div class="kpi-label">🟢 Resolved</div>
+      <div class="kpi-value">17</div>
+      <div class="kpi-sub">54.8% rate</div>
+    </div>
+    <div class="kpi notbug">
+      <div class="kpi-label">⚪ Not a Bug</div>
+      <div class="kpi-value">2</div>
+      <div class="kpi-sub">6.5% of total</div>
+    </div>
+    <div class="kpi escalated">
+      <div class="kpi-label">🚀 Dev Escalations</div>
+      <div class="kpi-value">11</div>
+      <div class="kpi-sub">35.5% escalation</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">📊 By Status</div>
+      <div class="chart-wrap" style="height:160px">
+        <canvas id="chartStatus"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#ef4444"></div>Open</div>
+          <div class="legend-count">7</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#f59e0b"></div>In Progress</div>
+          <div class="legend-count">5</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#22c55e"></div>Resolved</div>
+          <div class="legend-count">17</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#94a3b8"></div>Not a Bug</div>
+          <div class="legend-count">2</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌐 By Channel</div>
+      <div class="chart-wrap" style="height:160px">
+        <canvas id="chartChannel"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#3b82f6"></div>Business</div>
+          <div class="legend-count">12</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#f97316"></div>LinkedIn Hackers</div>
+          <div class="legend-count">10</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#8b5cf6"></div>Prospection</div>
+          <div class="legend-count">9</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ By Tag (top categories)</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="chartTag"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="tickets-row">
+    <div class="card">
+      <div class="card-title">🔴 Open Tickets <span style="color:var(--text3);font-weight:400;font-size:12px">(7)</span></div>
+      <div class="ticket-list">
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">INBOX — Pb injection inbox (template / saved reply)</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-prospection">Prospection</span>
+              <span class="tag tag-label">Inbox</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Prospects sans photo de profil dans Waalaxy</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-prospection">Prospection</span>
+              <span class="tag tag-label">Prospects</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Synchro Make — données vides pour connected at</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">CRM &amp; Webhooks</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">CRM Sync Hubspot — prospects non synchronisés après Visit</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">CRM &amp; Webhooks</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c8xaa8h" target="_blank">86c8xaa8h</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">OAuth Hubspot — impossible de taper dans le champ</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">CRM &amp; Webhooks</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774514535718419" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">L'heure du scheduled message est tronquée</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">UI/UX</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">STAFF — J'ai le trial by card alors que je suis owner</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">Trial &amp; Billing</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🟡 In Progress <span style="color:var(--text3);font-weight:400;font-size:12px">(5)</span></div>
+      <div class="ticket-list">
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">500 sur le duplicate de campagne</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-prospection">Prospection</span>
+              <span class="tag tag-label">Campagne</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Ambassadeur — toutes les commissions sont pending</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">Ambassadors</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c8xcwuw" target="_blank">86c8xcwuw</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Ambassadeur — Remboursement / Annulation de commission</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">Ambassadors</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c92tau2" target="_blank">86c92tau2</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Trial LL l'emporte sur l'abo permanent même si inférieur</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">Trial &amp; Billing</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c91qugt" target="_blank">86c91qugt</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Inbox : send later template ajoute dans l'input du message</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">Inbox</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c94x3xd" target="_blank">86c94x3xd</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">🚀 Dev Escalations — ClickUp Cards (11 tickets · 9 cards)</div>
+    <table class="escalations-table">
+      <thead>
+        <tr>
+          <th>Bug Title</th>
+          <th>Channel</th>
+          <th>Status</th>
+          <th>ClickUp Card</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ambassadeur — toutes les commissions sont pending</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8xcwuw" target="_blank">86c8xcwuw</a></td>
+        </tr>
+        <tr>
+          <td>Ambassadeur — Remboursement / Annulation de commission</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c92tau2" target="_blank">86c92tau2</a></td>
+        </tr>
+        <tr>
+          <td>Trial LL l'emporte sur l'abo permanent même si inférieur</td>
+          <td><span class="tag tag-channel-business">Business</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c91qugt" target="_blank">86c91qugt</a></td>
+        </tr>
+        <tr>
+          <td>Inbox : send later template ajoute dans l'input du message</td>
+          <td><span class="tag tag-channel-business">Business</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c94x3xd" target="_blank">86c94x3xd</a></td>
+        </tr>
+        <tr>
+          <td>CRM Sync Hubspot — prospects non synchronisés après Visit</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-open">Open</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8xaa8h" target="_blank">86c8xaa8h</a></td>
+        </tr>
+        <tr>
+          <td>Quota — les quotas ne se sont pas renew aujourd'hui</td>
+          <td><span class="tag tag-channel-prospection">Prospection</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8zxwbq" target="_blank">86c8zxwbq</a></td>
+        </tr>
+        <tr>
+          <td>Impossible d'activer une campagne sans prospect</td>
+          <td><span class="tag tag-channel-prospection">Prospection</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8xq5w6" target="_blank">86c8xq5w6</a></td>
+        </tr>
+        <tr>
+          <td>Queue — le nom des actions n'apparaît plus dans le dropdown</td>
+          <td><span class="tag tag-channel-prospection">Prospection</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8y04ak" target="_blank">86c8y04ak</a></td>
+        </tr>
+        <tr>
+          <td>Import stuck at 0 — LinkedIn &amp; Sales Navigator (x3 tickets)</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8bu6yn" target="_blank">86c8bu6yn</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    Updated April 2, 2026 · Data from <strong>Notion Bug Tracker - Dev Tickets</strong> · Waalaxy Support
+  </div>
+
+</main>
+
+<script>
+  new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Open', 'In Progress', 'Resolved', 'Not a Bug'],
+      datasets: [{
+        data: [7, 5, 17, 2],
+        backgroundColor: ['#ef4444','#f59e0b','#22c55e','#94a3b8'],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartChannel'), {
+    type: 'bar',
+    data: {
+      labels: ['Business', 'LinkedIn Hackers', 'Prospection'],
+      datasets: [
+        { label: 'Open',        data: [2, 3, 2], backgroundColor: '#ef4444' },
+        { label: 'In Progress', data: [2, 2, 1], backgroundColor: '#f59e0b' },
+        { label: 'Resolved',    data: [7, 5, 5], backgroundColor: '#22c55e' },
+        { label: 'Not a Bug',   data: [1, 0, 1], backgroundColor: '#94a3b8' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { stacked: true, grid: { color: '#f0f0ee' }, ticks: { font: { size: 10 }, stepSize: 3 } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartTag'), {
+    type: 'bar',
+    data: {
+      labels: ['Trial & Billing','Campagne','CRM & Webhooks','Inbox','Import','Email','Prospects','Queue LK','Ambassadors','Extension','UI/UX'],
+      datasets: [{
+        data: [6, 5, 4, 3, 3, 3, 3, 2, 2, 1, 1],
+        backgroundColor: ['#6366f1','#8b5cf6','#ec4899','#f97316','#f59e0b','#22c55e','#14b8a6','#3b82f6','#a855f7','#6b7280','#94a3b8'],
+        borderRadius: 4,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0f0ee' }, ticks: { font: { size: 10 }, stepSize: 1 } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
