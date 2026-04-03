@@ -1,149 +1,682 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🐛 Support Bug Dashboard — Waalaxy</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-:root{--bg:#f8f9fc;--surface:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--red:#ef4444;--red-l:#fee2e2;--amber:#f59e0b;--amber-l:#fef3c7;--green:#22c55e;--green-l:#dcfce7;--slate:#94a3b8;--slate-l:#f1f5f9;--indigo:#6366f1;--pink:#ec4899;--hdr:#1e293b;--r:10px;--sh:0 1px 4px rgba(0,0,0,.07)}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);font-size:14px}
-.hdr{position:sticky;top:0;z-index:100;background:var(--hdr);color:#fff;padding:12px 24px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.25);flex-wrap:wrap}
-.hdr-title h1{font-size:16px;font-weight:700;letter-spacing:.2px}
-.hdr-title .channels{font-size:11px;color:#94a3b8;margin-top:2px}
-.hdr-title{flex:1;min-width:0}
-.badge-live{display:flex;align-items:center;gap:5px;background:#065f46;color:#6ee7b7;border:1px solid #059669;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
-.pulse{width:6px;height:6px;border-radius:50%;background:#34d399;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
-.btn-hdr{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
-.btn-hdr:hover{background:rgba(255,255,255,.16)}
-.btn-hdr .ico{display:inline-block;transition:transform .5s}
-.btn-hdr.spinning .ico{animation:spin .7s linear infinite}
-.btn-export{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
-.btn-export:hover{background:rgba(255,255,255,.16)}
-.hdr-exports{display:flex;gap:8px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.filter-bar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.filter-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
-.presets{display:flex;gap:6px;flex-wrap:wrap}
-.preset-btn{padding:4px 12px;border-radius:16px;border:1px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
-.preset-btn:hover{border-color:var(--indigo);color:var(--indigo)}
-.preset-btn.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
-.custom-dates{display:flex;align-items:center;gap:8px}
-.custom-dates input{padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text)}
-.custom-dates span{color:var(--muted);font-size:12px}
-.filter-info{font-size:11px;color:var(--muted);flex:1;text-align:right;white-space:nowrap}
-.main{max-width:1400px;margin:0 auto;padding:20px 20px}
-.sec{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;margin-top:4px}
-.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px}
-@media(max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:540px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;border-top:4px solid transparent;box-shadow:var(--sh)}
-.kpi .lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.kpi .val{font-size:30px;font-weight:800;line-height:1}
-.kpi .sub{font-size:10px;color:var(--muted);margin-top:3px}
-.kpi-i{border-top-color:var(--indigo)}.kpi-r{border-top-color:var(--red)}.kpi-a{border-top-color:var(--amber)}.kpi-g{border-top-color:var(--green)}.kpi-s{border-top-color:var(--slate)}.kpi-p{border-top-color:var(--pink)}
-.charts-row{display:grid;grid-template-columns:1fr 1.4fr 1.4fr;gap:14px;margin-bottom:24px}
-@media(max-width:800px){.charts-row{grid-template-columns:1fr}}
-.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
-.chart-card h3{font-size:12px;font-weight:700;margin-bottom:12px}
-.chart-wrap{position:relative;height:200px}
-.tickets-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
-@media(max-width:700px){.tickets-row{grid-template-columns:1fr}}
-.tl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
-.tl-card h3{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.badge{background:var(--border);border-radius:12px;padding:1px 7px;font-size:10px;color:var(--muted);font-weight:600}
-.ti{padding:9px 0;border-bottom:1px solid var(--border)}
-.ti:last-child{border-bottom:none}
-.ti-title{font-weight:600;font-size:12px;margin-bottom:5px;line-height:1.35;display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
-.ti-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600}
-.tc-b{background:#dbeafe;color:#1d4ed8}.tc-l{background:#ede9fe;color:#6d28d9}.tc-p{background:#fce7f3;color:#9d174d}
-.tag-cat{background:#f3f4f6;color:#374151}
-.dot-esc{width:6px;height:6px;border-radius:50%;background:var(--pink);display:inline-block;flex-shrink:0}
-.ti-date{font-size:10px;color:var(--muted);margin-left:auto}
-.ti-links{display:flex;gap:7px;margin-top:5px}
-.tlink{font-size:10px;color:var(--indigo);text-decoration:none}
-.tlink:hover{text-decoration:underline}
-.empty{font-size:12px;color:var(--muted);padding:12px 0;text-align:center}
-.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh);margin-bottom:24px;overflow-x:auto}
-.table-card h3{font-size:12px;font-weight:700;margin-bottom:12px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:7px 10px;border-bottom:2px solid var(--border)}
-td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg)}
-.sb{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
-.sb-o{background:var(--red-l);color:#b91c1c}.sb-ip{background:var(--amber-l);color:#92400e}.sb-r{background:var(--green-l);color:#166534}.sb-n{background:var(--slate-l);color:#475569}
-.cu-link{display:inline-block;background:#7c3aed;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-decoration:none}
-.cu-link:hover{background:#6d28d9}
-.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)}
-@media print{.hdr{position:static!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print,.filter-bar,.btn-hdr,.hdr-exports,.ti-links{display:none!important}.charts-row{grid-template-columns:1fr 1fr!important}.kpi-row{grid-template-columns:repeat(3,1fr)!important}.tickets-row{grid-template-columns:1fr!important}*{box-shadow:none!important}body{font-size:11px}.main{padding:10px}@page{margin:15mm}}
-</style>
-</head>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🐛 Support Bug Dashboard — Waalaxy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+  :root{--bg:#f8f9fc;--surface:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--red:#ef4444;--red-l:#fee2e2;--amber:#f59e0b;--amber-l:#fef3c7;--green:#22c55e;--green-l:#dcfce7;--slate:#94a3b8;--slate-l:#f1f5f9;--indigo:#6366f1;--pink:#ec4899;--hdr:#1e293b;--r:10px;--sh:0 1px 4px rgba(0,0,0,.07)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);font-size:14px}
+  
+  /* ── Header ── */
+  .hdr{position:sticky;top:0;z-index:100;background:var(--hdr);color:#fff;padding:12px 24px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.25);flex-wrap:wrap}
+  .hdr-title h1{font-size:16px;font-weight:700;letter-spacing:.2px}
+  .hdr-title .channels{font-size:11px;color:#94a3b8;margin-top:2px}
+  .hdr-title{flex:1;min-width:0}
+  .badge-live{display:flex;align-items:center;gap:5px;background:#065f46;color:#6ee7b7;border:1px solid #059669;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+  .pulse{width:6px;height:6px;border-radius:50%;background:#34d399;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+  .btn-hdr{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap}
+  .btn-hdr:hover{background:rgba(255,255,255,.16)}
+  .btn-hdr .ico{display:inline-block;transition:transform .5s}
+  .btn-hdr.spinning .ico{animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hdr-exports{display:flex;align-items:center;gap:8px}
+  .btn-export{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);color:#e2e8f0;padding:4px 12px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s}
+  .btn-export:hover{background:rgba(255,255,255,.16)}
+  
+  /* ── Filter bar ── */
+  .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .filter-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .presets{display:flex;gap:6px}
+  .preset-btn{background:0;border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+  .preset-btn:hover{background:var(--slate-l)}
+  .preset-btn.active{background:#6366f1;color:#fff;border-color:#6366f1}
+  .custom-dates{display:none;gap:6px;align-items:center}
+  .custom-dates input{padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px}
+  .custom-dates span{color:var(--muted);font-size:11px}
+  .filter-info{font-size:11px;color:var(--muted);margin-left:auto}
+  
+  /* ── Main layout ── */
+  main{display:grid;gap:12px;padding:24px;grid-auto-rows:max-content;grid-template-columns:1fr}
+  .sec{font-size:13px;font-weight:700;color:var(--hdr);margin-top:8px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  
+  /* ── KPIs ── */
+  .kpi-row{display:grid;gap:10px;grid-template-columns:repeat(6,1fr)}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+  .kpi:hover{border-color:#6366f1;box-shadow:0 4px 12px rgba(99,102,241,.1)}
+  .kpi.kpi-active{background:#6366f1;color:#fff;border-color:#6366f1}
+  .kpi.kpi-active .lbl,.kpi.kpi-active .sub{color:#fff}
+  .kpi.kpi-active::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:#fff}
+  .kpi .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:700}
+  .kpi .val{font-size:24px;font-weight:700;font-family:monospace}
+  .kpi .sub{font-size:10px;color:var(--muted);margin-top:4px}
+  .kpi .hint{display:none;font-size:9px;color:var(--text);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);opacity:.6}
+  .kpi-active .hint{display:block}
+  
+  /* ── Charts ── */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;position:relative}
+  .chart-card h3{font-size:12px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .chart-wrap{position:relative;height:200px}
+  
+  /* ── Tickets ── */
+  .tickets-row{display:grid;grid-template-columns:1fr;gap:12px}
+  .tl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+  .tl-card h3{font-size:12px;font-weight:700;color:var(--hdr);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+  .badge{display:inline-block;background:#e2e8f0;color:#475569;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:600}
+  .badge{display:inline-block;background:#e2e8f0;color:#475569;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:600}
+  
+  /* ── Ticket item ── */
+  .ti{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:8px;display:grid;gap:8px}
+  .ti-title{font-size:12px;font-weight:600;color:var(--hdr)}
+  .ti-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:var(--indigo);color:#fff;text-transform:capitalize}
+  .tag-cat{background:#9ca3af;color:#fff}
+  .tag-cat.tc-b{background:var(--red-l);color:#be123c}
+  .tag-cat.tc-l{background:var(--indigo);color:#fff}
+  .tag-cat.tc-p{background:var(--amber-l);color:#b45309}
+  .ti-date{font-size:10px;color:var(--muted);margin-left:auto}
+  .ti-links{display:flex;gap:6px;margin-top:6px}
+  .tlink{display:inline-flex;align-items:center;gap:4px;background:#f0f9ff;color:#0369a1;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:600;text-decoration:none}
+  .tlink:hover{background:#e0f2fe;color:#0284c7}
+  .tlink:visited{color:#164e63}
+  .dot-esc{display:inline-block;width:8px;height:8px;background:var(--amber);border-radius:50%;margin-right:4px;vertical-align:-.5px}
+  .empty{text-align:center;padding:20px;color:var(--muted);font-size:11px}
+  
+  /* ── Status badge ── */
+  .sb{display:inline-block;padding:3px 6px;border-radius:3px;font-size:9px;font-weight:600}
+  .sb-o{background:var(--red-l);color:#991b1b}
+  .sb-ip{background:var(--amber-l);color:#92400e}
+  .sb-r{background:var(--green-l);color:#166534}
+  .sb-n{background:var(--slate-l);color:#475569}
+  .cu-link{display:inline-block;background:#7c3aed;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-decoration:none}
+  .cu-link:hover{background:#6d28d9}
+  
+  /* ── Footer ── */
+  .footer{text-align:center;padding:16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)}
+  
+  /* ── Print ── */
+  @media print{
+      .hdr{position:static!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .no-print,.filter-bar,.btn-hdr,.hdr-exports,.ti-links{display:none!important}
+      .charts-row{grid-template-columns:1fr 1fr!important}
+      .kpi-row{grid-template-columns:repeat(3,1fr)!important}
+      .tickets-row{grid-template-columns:1fr!important}
+      *{box-shadow:none!important}
+      body{font-size:11px}
+      .main{padding:10px}
+      @page{margin:15mm}
+  }
+  </style>
+  </head>
 <body>
-<header class="hdr">
-  <div class="hdr-title"><h1>🐛 Support Bug Dashboard — Waalaxy</h1><div class="channels">#support-business · #support-linkedin-hackers · #support-prospection</div></div>
-  <div class="badge-live"><span class="pulse"></span>Live · Notion</div>
-  <button class="btn-hdr" id="refreshBtn" onclick="triggerRefresh()"><span class="ico">↻</span> Refresh</button>
-  <div class="hdr-exports no-print">
-    <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
-    <button class="btn-export" onclick="exportPDF()">🖨 PDF</button>
-  </div>
-</header>
+
+  <header class="hdr">
+      <div class="hdr-title">
+            <h1>🐛 Support Bug Dashboard — Waalaxy</h1>
+          <div class="channels">#support-business ‧ #support-linkedin-hackers ‧ #support-prospection</div>div>
+      </div>div>
+    <div class="badge-live"><span class="pulse"></span>span>Live ‧ Notion</div>div>
+    <button class="btn-hdr" id="refreshBtn" onclick="triggerRefresh()"><span class="ico">⟳</span>span> Refresh</button>button>
+    <div class="hdr-exports no-print">
+        <button class="btn-export" onclick="exportCSV()" title="Export filtered tickets as CSV">⬇️ CSV</button>button>
+        <button class="btn-export" onclick="exportPDF()" title="Print / Save as PDF">🖨️ PDF</button>button>
+    </div>div>
+  </header>header>
+
 <div class="filter-bar no-print">
-  <span class="filter-label">Date range</span>
+  <span class="filter-label">Date range</span>span>
   <div class="presets">
-    <button class="preset-btn active" id="preset-all" onclick="setPreset('all')">All time</button>
-    <button class="preset-btn" id="preset-7d" onclick="setPreset('7d')">Last 7 days</button>
-    <button class="preset-btn" id="preset-30d" onclick="setPreset('30d')">Last 30 days</button>
-    <button class="preset-btn" id="preset-custom" onclick="setPreset('custom')">Custom ▾</button>
-  </div>
+      <button class="preset-btn active" id="preset-all"    onclick="setPreset('all')">All time</button>button>
+      <button class="preset-btn"           id="preset-7d"     onclick="setPreset('7d')">Last 7 days</button>button>
+      <button class="preset-btn"           id="preset-30d"    onclick="setPreset('30d')">Last 30 days</button>button>
+      <button class="preset-btn"           id="preset-custom" onclick="setPreset('custom')">Custom ▶</button>button>
+  </div>div>
   <div class="custom-dates" id="customDates" style="display:none">
-    <input type="date" id="dateFrom" onchange="applyCustom()"\/>
-    <span>→</span>
-    <input type="date" id="dateTo" onchange="applyCustom()"\/>
-  </div>
-  <div class="filter-info" id="filterInfo"></div>
-</div>
+      <input type="date" id="dateFrom" onchange="applyCustom()"/>
+      <span>⟶</span>
+      <input type="date" id="dateTo"    onchange="applyCustom()"/>
+  </div>div>
+  <div class="filter-info" id="filterInfo"></div>div>
+</div>div>
+
 <main class="main">
-  <div class="sec" id="overviewTitle">Overview</div>
-  <div class="kpi-row" id="kpiRow"></div>
-  <div class="sec">Analytics</div>
+  <div class="sec" id="overviewTitle">Overview</div>div>
+  <div class="kpi-row" id="kpiRow"></div>div>
+
+  <div class="sec">Analytics</div>div>
   <div class="charts-row">
-    <div class="chart-card"><h3>📊 Status Breakdown</h3><div class="chart-wrap"><canvas id="statusChart"></canvas></div></div>
-    <div class="chart-card"><h3>📡 Tickets by Channel</h3><div class="chart-wrap"><canvas id="channelChart"></canvas></div></div>
-    <div class="chart-card"><h3>🏷️ Top Tags</h3><div class="chart-wrap"><canvas id="tagChart"></canvas></div></div>
-  </div>
-  <div class="sec">Active Tickets</div>
-  <div class="tickets-row" id="ticketsRow"></div>
-  <div class="sec">Dev Escalations</div>
-  <div class="table-card" id="escalCard"></div>
-</main>
-<footer class="footer">Updated April 3, 2026 &nbsp;·&nbsp; Data from Notion Bug Tracker - Dev Tickets &nbsp;·&nbsp; Waalaxy Support</footer>
+      <div class="chart-card"><h3>📊 Status Breakdown</h3><div class="chart-wrap"><canvas id="statusChart"></canvas>canvas></div>div></div>div>
+      <div class="chart-card"><h3>📈 Tickets by Channel</h3><div class="chart-wrap"><canvas id="channelChart"></canvas>canvas></div>div></div>div>
+      <div class="chart-card"><h3>🏷️ Top Tags</h3><div class="chart-wrap"><canvas id="tagChart"></canvas>canvas></div>div></div>div>
+  </div>div>
+
+  <div class="sec">Active Tickets</div>div>
+  <div class="tickets-row" id="ticketsRow"></div>div>
+
+  <div class="sec">Dev Escalations</div>div>
+  <div class="table-card" id="escalCard"></div>div>
+</main>main>
+
+<footer class="footer">Updated April 3, 2026 &nbsp;‧ Data from Notion Bug Tracker - Dev Tickets &nbsp;‧ Waalaxy Support</footer>footer>
+
 <script>
-const TICKETS=[{title:"INBOX — Pb injection inbox",channel:"Prospection",tags:["Inbox"],status:"open",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529",clickup:""},{title:"Prospect sorti de campagne apparaît toujours en cours à l’étape CRM on reply",channel:"Prospection",tags:["Prospects","Campagne"],status:"resolved",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774540739410509",clickup:""},{title:"500 sur le duplicate de campagne",channel:"Prospection",tags:["Campagne"],status:"in-progress",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099",clickup:""},{title:"Quota — les quotas ne se sont pas renew",channel:"Prospection",tags:["Quota","Queue Actions LK"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774348226087889",clickup:"https://app.clickup.com/t/86c8zxwbq"},{title:"Messages non envoyés après le délai dans la campagne",channel:"Prospection",tags:["Campagne"],status:"resolved",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774015186356579",clickup:""},{title:"Impossible d'activer une campagne sans prospect",channel:"Prospection",tags:["Campagne"],status:"resolved",date:"2026-03-19",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773935005912799",clickup:"https://app.clickup.com/t/86c8xq5w6"},{title:"Prospects sans photo de profil dans Waalaxy",channel:"Prospection",tags:["Prospects"],status:"open",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669",clickup:""},{title:"Queue — le nom des actions n'apparaît plus dans le dropdown",channel:"Prospection",tags:["Queue Actions LK"],status:"resolved",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773992848066459",clickup:"https://app.clickup.com/t/86c8y04ak"},{title:"Prospects enrichis n'apparaissent pas dans le détail de campagne",channel:"Prospection",tags:["Campagne","Prospects"],status:"not-a-bug",date:"2026-03-23",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774270614676229",clickup:""},{title:"Synchro Make — données vides pour connected at et profile status",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719",clickup:""},{title:"Ambassadeur — toutes les commissions sont pending",channel:"LinkedIn Hackers",tags:["Ambassadors"],status:"in-progress",date:"2026-03-19",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773909369613989",clickup:"https://app.clickup.com/t/86c8xcwuw"},{title:"CRM Sync Hubspot — prospects non synchronisés après Visit",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"2026-03-18",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773833542537789",clickup:"https://app.clickup.com/t/86c8xaa8h"},{title:"Ambassadeur — Remboursement commission non effective",channel:"LinkedIn Hackers",tags:["Ambassadors"],status:"in-progress",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774533794978789",clickup:"https://app.clickup.com/t/86c92tau2"},{title:"Import stuck at 0 — LinkedIn & Sales Navigator",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919",clickup:"https://app.clickup.com/t/86c8bu6yn"},{title:"Import stuck à 0 — impossible d'importer depuis une search",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719",clickup:"https://app.clickup.com/t/86c8bu6yn"},{title:"Module Waalaxy introuvable sur Make",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"resolved",date:"2026-03-06",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1772705543606839",clickup:""},{title:"Injections — pb d'injection des saved reply LinkedIn",channel:"LinkedIn Hackers",tags:["Inbox"],status:"resolved",date:"2026-03-19",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773852303674379",clickup:""},{title:"OAuth Hubspot — impossible de taper dans le champ",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774514535718419",clickup:""},{title:"Imports down — prospects en erreur LinkedIn Member",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919",clickup:"https://app.clickup.com/t/86c8bu6yn"},{title:"Accès au compte bloqué durant la pause de l'abonnement",channel:"Business",tags:["Trial & Billing"],status:"not-a-bug",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774529027821089",clickup:""},{title:"EXTENSION — impossible de créer son compte",channel:"Business",tags:["Extension"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774369347990139",clickup:""},{title:"Trial LL l'emporte sur l'abo permanent",channel:"Business",tags:["Trial & Billing"],status:"in-progress",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774596953325749",clickup:"https://app.clickup.com/t/86c91qugt"},{title:"EMAIL — Impossible de faire un test d'envoi",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774623653587859",clickup:""},{title:"Email ne s'envoient pas — failed_to_get_access_token",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774519704550049",clickup:""},{title:"L'heure du scheduled message est tronquée dans le side panel",channel:"Business",tags:["UI/UX"],status:"open",date:"2026-03-25",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949",clickup:""},{title:"User en BRL n'a pas la page de pricing quarterly",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348546626999",clickup:""},{title:"Problème de crédits",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-29",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774858089935059",clickup:""},{title:"Inbox : send later template ajoute dans l'input",channel:"Business",tags:["Inbox"],status:"in-progress",date:"2026-03-30",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774968082791669",clickup:"https://app.clickup.com/t/86c94x3xd"},{title:"Emails sortent tous en erreur — account_deleted",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774597002596249",clickup:""},{title:"STAFF — trial by card alors que owner de ma team",channel:"Business",tags:["Trial & Billing"],status:"open",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319",clickup:""},{title:"Paiement en attente et toast d'erreur alors que l'abo est annulé",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348357429689",clickup:""}];
-let fStart=null,fEnd=null;
-const CHARTS={};
-function filtered(){return TICKETS.filter(t=>(!fStart||t.date>=fStart)&&(!fEnd||t.date<=fEnd));}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function mkChart(id,cfg){if(CHARTS[id])CHARTS[id].destroy();CHARTS[id]=new Chart(document.getElementById(id).getContext('2d'),cfg);}
-function chanClass(ch){return ch==='Business'?'tc-b':ch==='LinkedIn Hackers'?'tc-l':'tc-p';}
-const statusLabel={'open':'<span class="sb sb-o">🔴 Open<\/span>','in-progress':'<span class="sb sb-ip">🟡 In Progress<\/span>','resolved':'<span class="sb sb-r">🟢 Resolved<\/span>','not-a-bug':'<span class="sb sb-n">⚪ Not a Bug<\/span>'};
-function renderKPIs(t){const open=t.filter(x=>x.status==='open').length,ip=t.filter(x=>x.status==='in-progress').length,res=t.filter(x=>x.status==='resolved').length,nab=t.filter(x=>x.status==='not-a-bug').length,es=t.filter(x=>x.clickup).length,tot=t.length,rr=tot?Math.round(res/tot*100):0,er=tot?Math.round(es/tot*100):0;document.getElementById('kpiRow').innerHTML='<div class="kpi kpi-i"><div class="lbl">Total<\/div><div class="val">'+tot+'<\/div><div class="sub">'+(fStart||fEnd?'Filtered':'All time')+'<\/div><\/div><div class="kpi kpi-r"><div class="lbl">🔴 Open<\/div><div class="val">'+open+'<\/div><div class="sub">Needs attention<\/div><\/div><div class="kpi kpi-a"><div class="lbl">🟡 In Progress<\/div><div class="val">'+ip+'<\/div><div class="sub">Being investigated<\/div><\/div><div class="kpi kpi-g"><div class="lbl">🟢 Resolved<\/div><div class="val">'+res+'<\/div><div class="sub">'+rr+'% resolution rate<\/div><\/div><div class="kpi kpi-s"><div class="lbl">⚪ Not a Bug<\/div><div class="val">'+nab+'<\/div><div class="sub">Working as designed<\/div><\/div><div class="kpi kpi-p"><div class="lbl">🚀 Escalations<\/div><div class="val">'+es+'<\/div><div class="sub">'+er+'% rate<\/div><\/div>';}
-function renderCharts(t){const open=t.filter(x=>x.status==='open').length,ip=t.filter(x=>x.status==='in-progress').length,res=t.filter(x=>x.status==='resolved').length,nab=t.filter(x=>x.status==='not-a-bug').length;mkChart('statusChart',{type:'doughnut',data:{labels:['🔴 Open ('+open+')','🟡 In Progress ('+ip+')','🟢 Resolved ('+res+')','⚪ Not a Bug ('+nab+')'],datasets:[{data:[open,ip,res,nab],backgroundColor:['#ef4444','#f59e0b','#22c55e','#94a3b8'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:7,boxWidth:11}}}}});const chs=['Business','LinkedIn Hackers','Prospection'];const cd=chs.map(ch=>{const ct=t.filter(x=>x.channel===ch);return{tot:ct.length,o:ct.filter(x=>x.status==='open').length,ip:ct.filter(x=>x.status==='in-progress').length,r:ct.filter(x=>x.status==='resolved').length,n:ct.filter(x=>x.status==='not-a-bug').length};});mkChart('channelChart',{type:'bar',data:{labels:chs.map((c,i)=>c+' ('+cd[i].tot+')'),datasets:[{label:'🔴 Open',data:cd.map(d=>d.o),backgroundColor:'#ef4444'},{label:'🟡 In Progress',data:cd.map(d=>d.ip),backgroundColor:'#f59e0b'},{label:'🟢 Resolved',data:cd.map(d=>d.r),backgroundColor:'#22c55e'},{label:'⚪ Not a Bug',data:cd.map(d=>d.n),backgroundColor:'#94a3b8'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1,font:{size:10}}}},plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:7,boxWidth:11}}}}});const tc={};t.forEach(x=>x.tags.forEach(tg=>{tc[tg]=(tc[tg]||0)+1;}));const ts=Object.entries(tc).sort((a,b)=>b[1]-a[1]);const tC=['#6366f1','#f97316','#3b82f6','#22c55e','#ec4899','#f59e0b','#14b8a6','#a855f7','#ef4444','#84cc16','#0ea5e9','#d97706'];mkChart('tagChart',{type:'bar',data:{labels:ts.map(([k])=>k),datasets:[{data:ts.map(([,v])=>v),backgroundColor:tC.slice(0,ts.length),borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}}},y:{ticks:{font:{size:9}}}},plugins:{legend:{display:false}}}});}
-function ticketHTML(t){const d=t.clickup?'<span class="dot-esc" title="Dev escalation"><\/span>':'';const tags=t.tags.map(tg=>'<span class="tag tag-cat">'+esc(tg)+'<\/span>').join('');const sl=t.slack?'<a class="tlink" href="'+t.slack+'" target="_blank">💬 Slack<\/a>':'';const cu=t.clickup?'<a class="tlink" href="'+t.clickup+'" target="_blank">🔗 ClickUp<\/a>':'';return '<div class="ti"><div class="ti-title">'+esc(t.title)+d+'<\/div><div class="ti-meta"><span class="tag '+chanClass(t.channel)+'">'+esc(t.channel)+'<\/span>'+tags+'<span class="ti-date">'+t.date+'<\/span><\/div>'+(sl||cu?'<div class="ti-links">'+sl+cu+'<\/div>':'')+'<\/div>';}
-function renderTickets(t){const open=t.filter(x=>x.status==='open'),ip=t.filter(x=>x.status==='in-progress');document.getElementById('ticketsRow').innerHTML='<div class="tl-card"><h3>🔴 Open <span class="badge">'+open.length+'<\/span><\/h3>'+(open.length?open.map(ticketHTML).join(''):'<div class="empty">No open tickets<\/div>')+'<\/div><div class="tl-card"><h3>🟡 In Progress <span class="badge">'+ip.length+'<\/span><\/h3>'+(ip.length?ip.map(ticketHTML).join(''):'<div class="empty">No in-progress tickets<\/div>')+'<\/div>';}
-function renderEscalations(t){const et=t.filter(x=>x.clickup);const rows=et.map(x=>'<tr><td>'+esc(x.title)+'<\/td><td><span class="tag '+chanClass(x.channel)+'">'+esc(x.channel)+'<\/span><\/td><td>'+statusLabel[x.status]+'<\/td><td><a class="cu-link" href="'+x.clickup+'" target="_blank">'+x.clickup.split('/').pop()+'<\/a><\/td><\/tr>').join('');document.getElementById('escalCard').innerHTML='<h3>🚀 Dev Escalations <span class="badge" style="margin-left:5px">'+et.length+'<\/span><\/h3>'+(et.length?'<table><thead><tr><th>Bug Title<\/th><th>Channel<\/th><th>Status<\/th><th>ClickUp<\/th><\/tr><\/thead><tbody>'+rows+'<\/tbody><\/table>':'<div class="empty">No dev escalations<\/div>');}
-function updateInfo(t){const el=document.getElementById('filterInfo');if(!fStart&&!fEnd){el.textContent='Showing all '+t.length+' tickets';return;}const parts=[];if(fStart)parts.push('from '+fStart);if(fEnd)parts.push('to '+fEnd);el.textContent='Showing '+t.length+' ticket'+(t.length!==1?'s':'')+' '+parts.join(' ');}
-function render(){const t=filtered();renderKPIs(t);renderCharts(t);renderTickets(t);renderEscalations(t);updateInfo(t);}
-function setPreset(p){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));document.getElementById('preset-'+p).classList.add('active');const cd=document.getElementById('customDates');if(p==='custom'){cd.style.display='flex';if(!document.getElementById('dateFrom').value){const d=new Date();d.setDate(d.getDate()-7);document.getElementById('dateFrom').value=d.toISOString().slice(0,10);document.getElementById('dateTo').value=new Date().toISOString().slice(0,10);}applyCustom();return;}cd.style.display='none';const now=new Date();fEnd=null;if(p==='all'){fStart=null;}else if(p==='7d'){const d=new Date(now);d.setDate(d.getDate()-7);fStart=d.toISOString().slice(0,10);}else if(p==='30d'){const d=new Date(now);d.setDate(d.getDate()-30);fStart=d.toISOString().slice(0,10);}render();}
-function applyCustom(){fStart=document.getElementById('dateFrom').value||null;fEnd=document.getElementById('dateTo').value||null;render();}
-function exportCSV(){const t=filtered();const header=['Title','Channel','Tags','Status','Date Reported','Slack URL','ClickUp URL'];const rows=t.map(x=>[x.title,x.channel,x.tags.join('; '),x.status,x.date,x.slack,x.clickup]);const csv=[header,...rows].map(r=>r.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='waalaxy-bugs-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
-function exportPDF(){window.print();}
-function triggerRefresh(){const btn=document.getElementById('refreshBtn');btn.classList.add('spinning');btn.disabled=true;window.location.href=window.location.pathname+'?v='+Date.now();}
-render();
-</script>
-</body>
-</html>
+const TICKETS = [
+  {title:"INBOX — Pb injection inbox (template / saved reply)",channel:"Prospection",tags:["Inbox"],status:"open",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529",clickup:""},
+  {title:"Prospect sorti de campagne apparaît toujours en cours à l'étape CRM on reply",channel:"Prospection",tags:["Prospects","Campagne"],status:"resolved",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774540739414050",clickup:""},
+  {title:"500 sur le duplicate de campagne",channel:"Prospection",tags:["Campagne"],status:"in-progress",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099",clickup:""},
+  {title:"Quota — les quotas ne se sont pas renew aujourd'hui",channel:"Prospection",tags:["Quota","Queue Actions LK"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774348226087889",clickup:"https://app.clickup.com/t/86c8zxwbq"},
+  {title:"Messages non envoyés après le délai dans la campagne",channel:"Prospection",tags:["Campagne"],status:"resolved",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774015186356579",clickup:""},
+  {title:"Impossible d'activer une campagne sans prospect — régression",channel:"Prospection",tags:["Campagne"],status:"resolved",date:"2026-03-19",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773935005912799",clickup:"https://app.clickup.com/t/86c8xq5w6"},
+  {title:"Prospects sans photo de profil dans Waalaxy alors qu'ils en ont une sur LinkedIn",channel:"Prospection",tags:["Prospects"],status:"open",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669",clickup:""},
+  {title:"Queue — le nom des actions n'apparaît plus dans le dropdown",channel:"Prospection",tags:["Queue Actions LK"],status:"resolved",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773992848066459",clickup:"https://app.clickup.com/t/86c8y04ak"},
+  {title:"Prospects enrichis n'apparaissent pas dans le détail de campagne (email finder)",channel:"Prospection",tags:["Campagne","Prospects"],status:"not-a-bug",date:"2026-03-23",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774270614676229",clickup:""},
+  {title:"Synchro Make — données vides pour 'connected at' et 'profile status'",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1773998085373719",clickup:""},
+  {title:"Ambassadeur — toutes les commissions sont pending",channel:"LinkedIn Hackers",tags:["Ambassadors"],status:"in-progress",date:"2026-03-19",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1773909369613989",clickup:"https://app.clickup.com/t/86c8xcwuw"},
+  {title:"CRM Sync Hubspot — prospects non synchronisés après Visit",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"2026-03-18",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1773833542537789",clickup:"https://app.clickup.com/t/86c8xaa8h"},
+  {title:"Ambassadeur — Remboursement / Annulation de commission non effective",channel:"LinkedIn Hackers",tags:["Ambassadors"],status:"in-progress",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1774533794978789",clickup:"https://app.clickup.com/t/86c92tau2"},
+  {title:"Import stuck at 0 — LinkedIn & Sales Navigator",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1775029142395919",clickup:"https://app.clickup.com/t/86c8bu6yn"},
+  {title:"Import stuck à 0 — impossible d'importer depuis une search",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1773998085373719",clickup:"https://app.clickup.com/t/86c8bu6yn"},
+  {title:"Module Waalaxy introuvable sur Make",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"resolved",date:"2026-03-06",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1772705543606839",clickup:""},
+  {title:"Injections — User freemium a un pb d'injection des saved reply côté LinkedIn",channel:"LinkedIn Hackers",tags:["Inbox"],status:"resolved",date:"2026-03-19",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1773852303674379",clickup:""},
+  {title:"OAuth Hubspot — impossible de taper dans le champ j'accepte le risque",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1774514535718419",clickup:""},
+  {title:"Imports down — prospects en erreur 'LinkedIn Member'",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNYS/p1775029142395919",clickup:"https://app.clickup.com/t/86c8bu6yn"},
+  {title:"Accès au compte bloqué durant la pause de l'abonnement",channel:"Business",tags:["Trial & Billing"],status:"not-a-bug",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774529027821089",clickup:""},
+  {title:"EXTENSION — Il ne parvient pas à créer son compte",channel:"Business",tags:["Extension"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774369347990139",clickup:""},
+  {title:"Trial LL l'emporte sur l'abo permanent même si l'abo est supérieur",channel:"Business",tags:["Trial & Billing"],status:"in-progress",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774596953325749",clickup:"https://app.clickup.com/t/86c91qugt"},
+  {title:"EMAIL — Impossible de faire un test d'envoi",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774623653587859",clickup:""},
+  {title:"Email ne s'envoient pas — failed_to_get_access_token",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774519704550049",clickup:""},
+  {title:"L'heure du scheduled message est tronquée dans le side panel",channel:"Business",tags:["UI/UX"],status:"open",date:"2026-03-25",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949",clickup:""},
+  {title:"User en BRL n'a pas la page de pricing quarterly",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348546626999",clickup:""},
+  {title:"Problème de crédits",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-29",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774858089935059",clickup:""},
+  {title:"Inbox : send later template ajoutée dans l'input du message",channel:"Business",tags:["Inbox"],status:"in-progress",date:"2026-03-30",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774968082791669",clickup:"https://app.clickup.com/t/86c94x3xd"},
+  {title:"Emails sortent tous en erreur — account_deleted",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774597002596249",clickup:""},
+  {title:"STAFF — J'ai le trial by card alors que je suis owner de ma team",channel:"Business",tags:["Trial & Billing"],status:"open",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319",clickup:""},
+  {title:"Paiement en attente et toast d'erreur alors que l'abo est annulé depuis 2022",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348357429689",clickup:""}
+  ];
+
+/* ── State ── */
+let fStart = null, fEnd = null, fStatus = null;
+const CHARTS = {};
+
+/* ── Helpers ── */
+function filtered() {
+    return TICKETS.filter(t =>
+          (!fStart  || t.date >= fStart) &&
+          (!fEnd    || t.date <= fEnd) &&
+          (!fStatus || (fStatus === 'escalated' ? !!t.clickup : t.status === fStatus))
+        );
+}
+
+/* ── Status filter (KPI card click) ── */
+function setStatus(s){
+    fStatus = (!s || fStatus === s) ? null : s;
+    render();
+    if (fStatus){
+          const target = fStatus === 'escalated'
+                  ? document.getElementById('escalCard')
+                  : document.getElementById('ticketsRow');
+          if (target) setTimeout(() => target.scrollIntoView({behavior:'smooth',block:'start'}), 60);
+    }
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function mkChart(id, cfg) {
+    if (CHARTS[id]) CHARTS[id].destroy();
+        CHARTS[id] = new Chart(document.getElementById(id).getContext('2d'), cfg);
+}
+function chanClass(ch){ return ch==='Business'?'tc-b':ch==='LinkedIn Hackers'?'tc-l':'tc-p'; }
+const statusLabel = {
+    'open':'<span class="sb sb-o">⏱️ Open</span>',
+    'in-progress':'<span class="sb sb-ip">🔄 In Progress</span>',
+    'resolved':'<span class="sb sb-r">✅ Resolved</span>',
+    'not-a-bug':'<span class="sb sb-n">✋ Not a Bug</span>'
+};
+
+/* ── Render KPIs ── */
+function renderKPIs(t) {
+    // Use ALL tickets for counts (ignore status filter so numbers always show totals)
+    const base = TICKETS.filter(x => (!fStart || x.date >= fStart) && (!fEnd || x.date <= fEnd));
+    const open=base.filter(x=>x.status==='open').length,
+              ip=base.filter(x=>x.status==='in-progress').length,
+              res=base.filter(x=>x.status==='resolved').length,
+              nab=base.filter(x=>x.status==='not-a-bug').length,
+              esc=base.filter(x=>x.clickup).length,
+              tot=base.length,
+              rr=tot?Math.round(res/tot*100):0,
+              er=tot?Math.round(esc/tot*100):0;
+    const a = s => fStatus===s?' kpi-active':'';
+    const hint = '<div class="hint">👁 voir les tickets</div>';
+    document.getElementById('kpiRow').innerHTML=`
+        <div class="kpi kpi-i${a('__all__')}" onclick="setStatus(null)" title="Réinitialiser le filtre">
+              <div class="lbl">Total Tickets</div><div class="val">${tot}</div>
+                    <div class="sub">${fStart||fEnd?'Période filtrée':'Toute la période'}</div>
+                          ${fStatus?'<div class="hint">👁 effacer le filtre</div>':''}
+                              </div>
+                                  <div class="kpi kpi-r${a('open')}" onclick="setStatus('open')" title="Voir les tickets ouverts">
+                                        <div class="lbl">⏱️ Open</div><div class="val">${open}</div>
+                                              <div class="sub">Needs attention</div>${hint}
+                                                  </div>
+                                                      <div class="kpi kpi-a${a('in-progress')}" onclick="setStatus('in-progress')" title="Voir les tickets en cours">
+                                                            <div class="lbl">🔄 In Progress</div><div class="val">${ip}</div>
+                                                                  <div class="sub">Being investigated</div>${hint}
+                                                                      </div>
+                                                                          <div class="kpi kpi-g${a('resolved')}" onclick="setStatus('resolved')" title="Voir les tickets résolus">
+                                                                                <div class="lbl">✅ Resolved</div><div class="val">${res}</div>
+                                                                                      <div class="sub">${rr}% resolution rate</div>${hint}
+                                                                                          </div>
+                                                                                              <div class="kpi kpi-s${a('not-a-bug')}" onclick="setStatus('not-a-bug')" title="Voir les non-bugs">
+                                                                                                    <div class="lbl">✋ Not a Bug</div><div class="val">${nab}</div>
+                                                                                                          <div class="sub">Working as designed</div>${hint}
+                                                                                                              </div>
+                                                                                                                  <div class="kpi kpi-p${a('escalated')}" onclick="setStatus('escalated')" title="Voir les escalades dev">
+                                                                                                                        <div class="lbl">🚀 Dev Escalations</div><div class="val">${esc}</div>
+                                                                                                                              <div class="sub">${er}% escalation rate</div>${hint}
+                                                                                                                                  </div>`;
+}
+
+/* ── Render Charts ── */
+function renderCharts(t) {
+    const open=t.filter(x=>x.status==='open').length,
+              ip=t.filter(x=>x.status==='in-progress').length,
+              res=t.filter(x=>x.status==='resolved').length,
+              nab=t.filter(x=>x.status==='not-a-bug').length;
+  
+    mkChart('statusChart',{type:'doughnut',data:{
+          labels:[`⏱️ Open (${open})`,`🔄 In Progress (${ip})`,`✅ Resolved (${res})`,`✋ Not a Bug (${nab})`],
+          datasets:[{data:[open,ip,res,nab],backgroundColor:['#ef4444','#f59e0b','#22c55e','#94a3b8'],borderWidth:2,borderColor:'#fff'}]
+    },options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:7,boxWidth:11}}}}});
+  
+    const chs=['Business','LinkedIn Hackers','Prospection'];
+    const cd=chs.map(ch=>{const ct=t.filter(x=>x.channel===ch);return{tot:ct.length,o:ct.filter(x=>x.status==='open').length,ip:ct.filter(x=>x.status==='in-progress').length,r:ct.filter(x=>x.status==='resolved').length,n:ct.filter(x=>x.status==='not-a-bug').length};});
+    mkChart('channelChart',{type:'bar',data:{
+          labels:chs.map((c,i)=>`${c} (${cd[i].tot})`),
+          datasets:[
+            {label:'⏱️ Open',data:cd.map(d=>d.o),backgroundColor:'#ef4444'},
+            {label:'🔄 In Progress',data:cd.map(d=>d.ip),backgroundColor:'#f59e0b'},
+            {label:'✅ Resolved',data:cd.map(d=>d.r),backgroundColor:'#22c55e'},
+            {label:'✋ Not a Bug',data:cd.map(d=>d.n),backgroundColor:'#94a3b8'}
+                ]
+    },options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1,font:{size:10}}}},plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:7,boxWidth:11}}}}});
+  
+    const tc={};
+    t.forEach(x=>x.tags.forEach(tg=>{tc[tg]=(tc[tg]||0)+1;}));
+    const ts=Object.entries(tc).sort((a,b)=>b[1]-a[1]);
+    const tColors=['#6366f1','#f97316','#3b82f6','#22c55e','#ec4899','#f59e0b','#14b8a6','#a855f7','#ef4444','#84cc16','#0ea5e9','#d97706'];
+    mkChart('tagChart',{type:'bar',data:{
+          labels:ts.map(([k])=>k),
+          datasets:[{data:ts.map(([,v])=>v),backgroundColor:tColors.slice(0,ts.length),borderRadius:3}]
+    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}}}},plugins:{legend:{display:false}}}});
+}
+
+/* ── Render ticket item ── */
+function ticketHTML(t){
+    const d=t.clickup?`<span class="dot-esc" title="Dev escalation"></span>`:'';
+    const tags=t.tags.map(tg=>`<span class="tag tag-cat">${esc(tg)}</span>`).join('');
+    const sl=t.slack?`<a class="tlink" href="${t.slack}" target="_blank">📬 Slack</a>`:'';
+    const cu=t.clickup?`<a class="tlink" href="${t.clickup}" target="_blank">🎯 ClickUp</a>`:'';
+    return `<div class="ti">
+        <div class="ti-title">${esc(t.title)}${d}</div>
+            <div class="ti-meta"><span class="tag ${chanClass(t.channel)}">${esc(t.channel)}</span>${tags}<span class="ti-date">${t.date}</span></div>
+                ${sl||cu?`<div class="ti-links">${sl}${cu}</div>`:''}
+                  </div>`;
+}
+
+/* ── Render Tickets ── */
+function renderTickets(t) {
+    const row = document.getElementById('ticketsRow');
+    if (fStatus && fStatus !== '__all__') {
+          // Status-filtered view: single full-width card
+          const labels = {
+                  'open':'⏱️ Open','in-progress':'🔄 In Progress',
+                  'resolved':'✅ Resolved','not-a-bug':'✋ Not a Bug','escalated':'🚀 Dev Escalations'
+          };
+          const list = fStatus === 'escalated' ? t.filter(x=>x.clickup) : t;
+          row.style.gridTemplateColumns = '1fr';
+          row.innerHTML = `<div class="tl-card">
+                <h3>${labels[fStatus]||fStatus} <span class="badge">${list.length}</span>
+                        <button onclick="setStatus(null)" style="margin-left:auto;font-size:10px;background:none;border:1px solid var(--border);border-radius:10px;padding:2px 8px;cursor:pointer;color:var(--muted)">👁 Effacer le filtre</button>
+                              </h3>
+                                    ${list.length ? list.map(ticketHTML).join('') : '<div class="empty">Aucun ticket dans cette sélection</div>'}
+                                        </div>`;
+    } else {
+          // Default view: Open + In Progress side by side
+          row.style.gridTemplateColumns = '';
+          const open=t.filter(x=>x.status==='open'),ip=t.filter(x=>x.status==='in-progress');
+          row.innerHTML = `
+                <div class="tl-card">
+                        <h3>⏱️ Open <span class="badge">${open.length}</span></h3>
+                                ${open.length?open.map(ticketHTML).join(''):\"<div class='empty\">No open tickets in this range</div>\"}
+                                  </div>
+                                        <div class="tl-card">
+                                          <h3>🔄 In Progress <span class="badge">${ip.length}</span></h3>
+                                                  ${ip.length?ip.map(ticketHTML).join(''):\"<div class='empty\">No in-progress tickets in this range</div>\"}
+                                                    </div>`;
+                                                  }
+                                                  }
+                                                  
+                                                  /* ── Render Escalations ── */
+                                                  function renderEscalations(t) {
+                                                    const esc_t=t.filter(x=>x.clickup);
+                                                      const rows=esc_t.map(x=>`<tr>
+                <td>${esc(x.title)}</td>
+                <td><span class="tag ${chanClass(x.channel)}">${esc(x.channel)}</span></td>
+                <td>${statusLabel[x.status]}</td>
+                <td><a class="cu-link" href="${x.clickup}" target="_blank">${x.clickup.split('/').pop()}</a></td>
+            </tr>`).join('');
+              document.getElementById('escalCard').innerHTML=`
+                  <h3>🚀 Tickets Escalated to Dev <span class="badge" style="margin-left:5px">${esc_t.length}</span></h3>
+                      ${esc_t.length?`<table><thead><tr><th>Bug Title</th><th>Channel</th><th>Status</th><th>ClickUp</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No dev escalations in this range</div>'}`;
+    }
+  
+  /* ── Filter info label ── */
+  function updateInfo(t) {
+      const el=document.getElementById('filterInfo');
+      const parts=[];
+      if(fStart) parts.push(`from ${fStart}`);
+          if(fEnd)    parts.push(`to ${fEnd}`);
+              const statusNames={'open':'Open','in-progress':'In Progress','resolved':'Resolved','not-a-bug':'Not a Bug','escalated':'Dev Escalations'};
+      if(fStatus) parts.push(`‧ ${statusNames[fStatus]||fStatus} only`);
+          if(!parts.length){ el.textContent=`Showing all ${t.length} tickets ‧ Click a card to filter`; return; }
+              el.textContent=`${t.length} ticket${t.length!==1?'s':''} ${parts.join(' ')}`;
+  }
+  
+  /* ── Master render ── */
+  function render() {
+      const t = filtered();
+      renderKPIs(t);
+      renderCharts(t);
+      renderTickets(t);
+      renderEscalations(t);
+      updateInfo(t);
+  }
+  
+  /* ── Filter presets ── */
+  function setPreset(p) {
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html
+  lang="en"
+  
+  data-color-mode="auto" data-light-theme="light" data-dark-theme="dark"
+  data-a11y-animated-images="system" data-a11y-link-underlines="true"
+  
+  >
+
+    <style>
+:root {
+  --fontStack-monospace: "Monaspace Neon", ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace !important;
+}
+</style>
+
+
+
+
+  <head>
+    <meta charset="utf-8">
+  <link rel="dns-prefetch" href="https://github.githubassets.com">
+  <link rel="dns-prefetch" href="https://avatars.githubusercontent.com">
+  <link rel="dns-prefetch" href="https://github-cloud.s3.amazonaws.com">
+  <link rel="dns-prefetch" href="https://user-images.githubusercontent.com/">
+  <link rel="preconnect" href="https://github.githubassets.com" crossorigin>
+  <link rel="preconnect" href="https://avatars.githubusercontent.com">
+
+  
+  <link rel="preload" href="https://github.githubassets.com/assets/MonaSansVF-wdth-wght-opsz-902d64c7ad02.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/light-0c8222dcd7a4f9b7.css" /><link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/dark-fc6eec18532c3ae0.css" /><link data-color-theme="light_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_high_contrast-51c0c6e0c085cc0f.css" /><link data-color-theme="light_colorblind" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_colorblind-4dd12c5689d6b012.css" /><link data-color-theme="light_colorblind_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_colorblind_high_contrast-dfa0c9e22ba6ba2b.css" /><link data-color-theme="light_tritanopia" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_tritanopia-9fd9c8859395d1a8.css" /><link data-color-theme="light_tritanopia_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/light_tritanopia_high_contrast-9c32304a2a8ac631.css" /><link data-color-theme="dark_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_high_contrast-96d7b2bab5a6ae4e.css" /><link data-color-theme="dark_colorblind" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_colorblind-0c6ca283d4d35cea.css" /><link data-color-theme="dark_colorblind_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_colorblind_high_contrast-2dc46b4919fae81e.css" /><link data-color-theme="dark_tritanopia" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_tritanopia-271332ec9362e8d3.css" /><link data-color-theme="dark_tritanopia_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_tritanopia_high_contrast-eb5bb84e91d6d553.css" /><link data-color-theme="dark_dimmed" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_dimmed-f3aa862f2ac7ead2.css" /><link data-color-theme="dark_dimmed_high_contrast" crossorigin="anonymous" media="all" rel="stylesheet" data-href="https://github.githubassets.com/assets/dark_dimmed_high_contrast-206b6b93f856629b.css" />
+
+  <style type="text/css">
+    :root {
+      --tab-size-preference: 4;
+    }
+
+    pre, code {
+      tab-size: var(--tab-size-preference);
+    }
+  </style>
+
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-primitives-10bf9dd67e3d70bd.css" />
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-0fcd9af82350aeda.css" />
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/global-0bd78641c0a1f3e0.css" />
+    <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/github-c94ab8d1f22049a8.css" />
+  
+
+  
+
+  <script type="application/json" id="client-env">{"locale":"en","featureFlags":["actions_custom_images_storage_billing_ui_visibility","actions_image_version_event","actions_service_container_command","actions_workflow_language_service_allow_case_function","alternate_user_config_repo","arianotify_comprehensive_migration","batch_suggested_changes","billing_discount_threshold_notification","billing_ui_budget_pagination_enabled","code_scanning_all_branch_query","code_scanning_dfa_degraded_experience_notice","codemirror_inp_optimizations","codeowners_validation_in_diff","codespaces_prebuild_region_target_update","coding_agent_model_selection","coding_agent_model_selection_all_skus","comment_viewer_copy_raw_markdown","comments_panel_issue_comments","contentful_primer_code_blocks","copilot_agent_image_upload","copilot_agent_snippy","copilot_api_agentic_issue_marshal_yaml","copilot_ask_mode_dropdown","copilot_capi_error_response_telemetry","copilot_chat_attach_multiple_images","copilot_chat_clear_model_selection_for_default_change","copilot_chat_disable_model_picker_while_streaming","copilot_chat_enable_tool_call_logs","copilot_chat_explain_error_user_model","copilot_chat_file_redirect","copilot_chat_input_commands","copilot_chat_opening_thread_switch","copilot_chat_reduce_quota_checks","copilot_chat_search_bar_redirect","copilot_chat_selection_attachments","copilot_chat_vision_in_claude","copilot_chat_vision_preview_gate","copilot_code_review_batch_apply_suggestions","copilot_coding_agent_free_users_exp","copilot_coding_agent_task_response","copilot_custom_copilots","copilot_custom_copilots_feature_preview","copilot_duplicate_thread","copilot_extensions_hide_in_dotcom_chat","copilot_extensions_removal_on_marketplace","copilot_features_sql_server_logo","copilot_features_zed_logo","copilot_file_block_ref_matching","copilot_ftp_hyperspace_upgrade_prompt","copilot_icebreakers_experiment_dashboard","copilot_icebreakers_experiment_hyperspace","copilot_immersive_code_block_transition_wrap","copilot_immersive_embedded","copilot_immersive_embedded_mode","copilot_immersive_file_block_transition_open","copilot_immersive_file_preview_keep_mounted","copilot_immersive_job_result_preview","copilot_immersive_layout_routes","copilot_immersive_structured_model_picker","copilot_immersive_task_hyperlinking","copilot_immersive_task_within_chat_thread","copilot_issue_list_show_more","copilot_mc_cli_resume_any_users_task","copilot_mission_control_always_send_integration_id","copilot_mission_control_cli_resume_with_task_id","copilot_mission_control_custom_agent_group","copilot_mission_control_decoupled_mode","copilot_mission_control_decoupled_mode_agent_tooltip","copilot_mission_control_initial_data_spinner","copilot_mission_control_scroll_to_bottom_button","copilot_mission_control_task_alive_updates","copilot_org_policy_page_focus_mode","copilot_premium_request_quotas","copilot_redirect_header_button_to_agents","copilot_resource_panel","copilot_scroll_preview_tabs","copilot_share_active_subthread","copilot_spaces_ga","copilot_spaces_individual_policies_ga","copilot_spaces_pagination","copilot_spark_empty_state","copilot_spark_handle_nil_friendly_name","copilot_swe_agent_hide_model_picker_if_only_auto","copilot_swe_agent_pr_comment_model_picker","copilot_swe_agent_use_subagents","copilot_task_api_github_rest_style","copilot_unconfigured_is_inherited","copilot_usage_metrics_ga","copilot_workbench_slim_line_top_tabs","custom_instructions_file_references","custom_properties_consolidate_default_value_input","dashboard_add_updated_desc","dashboard_indexeddb_caching","dashboard_lists_max_age_filter","dashboard_universe_2025","dashboard_universe_2025_feedback_dialog","dead_click_detection","fgpat_permissions_selector_redesign","flex_cta_groups_mvp","global_nav_react","hide_groups_list_for_few_groups","hyperspace_2025_logged_out_batch_1","hyperspace_2025_logged_out_batch_2","hyperspace_2025_logged_out_batch_3","ipm_global_transactional_message_agents","ipm_global_transactional_message_copilot","ipm_global_transactional_message_issues","ipm_global_transactional_message_prs","ipm_global_transactional_message_repos","ipm_global_transactional_message_spaces","issue_cca_modal_open","issue_cca_visualization","issue_fields_global_search","issue_fields_visibility_indicator","issue_fields_visibility_settings","issues_dashboard_inp_optimization","issues_diff_based_label_updates","issues_expanded_file_types","issues_index_semantic_search","issues_lazy_load_comment_box_suggestions","issues_react_bots_timeline_pagination","issues_react_chrome_container_query_fix","issues_react_include_bots_in_pickers","issues_react_prohibit_title_fallback","issues_react_ui_feedback","issues_search_type_gql","landing_pages_ninetailed","landing_pages_web_vitals_tracking","lifecycle_label_name_updates","load_paginated_threads_on_diff","marketing_pages_search_explore_provider","memex_default_issue_create_repository","memex_live_update_hovercard","memex_mwl_filter_field_delimiter","memex_remove_deprecated_type_issue","memex_roadmap_drag_style","merge_status_header_feedback","mission_control_retry_on_401","oauth_authorize_clickjacking_protection","open_agent_session_in_vscode_insiders","open_agent_session_in_vscode_stable","pr_sfv_new_diff_fetch","primer_react_css_has_selector_perf","primer_react_overlay_max_height_clamp_to_viewport","primer_react_spinner_synchronize_animations","prs_checks_react","prs_conversations_react","prs_docked_side_panel","prs_live_updates_issue_comments","prs_review_summaries_in_side_panel","prx_files","prx_merge_status_button_alt_logic","pull_request_edit_button_redesign","pull_request_files_accurate_size_estimates","pull_request_files_virtualization","pull_request_merge_status_button","pull_request_virtualization_preload_diffs","pulls_q_to_filter","pulls_sidebar_update","react_blob_overlay","repository_suggester_elastic_search","sample_network_conn_type","secret_scanning_pattern_alerts_link","session_logs_ungroup_reasoning_text","site_features_copilot_universe","site_homepage_collaborate_video","spark_prompt_secret_scanning","spark_server_connection_status","suppress_automated_browser_vitals","viewscreen_sandbox","webp_support","workbench_store_readonly"],"login":"alessandrapisu-hash","copilotApiOverrideUrl":"https://api.individual.githubcopilot.com"}</script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/wp-runtime-535e2541d53f87b0.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/fetch-utilities-78a4114cfa572239.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/85924-e131bec5f99667e1.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/28839-734cb6d8a7150172.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/34646-edd5528648c197b1.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/environment-51c0968cf21c176d.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/runtime-helpers-3bb6f7d6b7a2f531.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/2966-f6796bfd155feae1.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/96232-69d46a31854353d4.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/41013-7a6deee6d6ff15eb.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/51210-3abb7238871a5b29.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/64247-7de91c52a8aca0eb.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/81683-1370179bf9bdc0f0.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/46740-6606b1026a237412.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/53102-f34caec7b425fe9f.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/github-elements-32fbe2698fc2a4f0.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/element-registry-2c7c75ef125262db.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/react-core-2e47687b4310af0f.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/react-lib-a4cf89fce9a1300a.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/7053-fe40037405b8998b.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/79039-2565b539a6ebc09b.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/61110-93cf7706e5dc8bfa.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/2887-47ac9a4b8862e6bf.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/26533-4df1172b25427069.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/45695-0f7265ae0cee4917.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/86483-92f38323ee870655.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/86659-ee83bc63b54d5ea9.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/60481-19fcf1c5670a41f1.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/46287-a173e8d4423a732c.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/2498-7a413c8209222158.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/61025-40fd5e83cbe4bc66.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/89627-fbbd31c43d83e10c.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/49029-32f138b26aa15ad8.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/99328-5e06da57c4622e21.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/behaviors-71b614800b479109.js" defer="defer"></script>
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/react-core.d14f70276c05a07b.module.css" />
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/4244-d5dcb589fae0ecbf.js" defer="defer"></script>
+<script crossorigin="anonymous" type="module" src="https://github.githubassets.com/assets/notifications-global-206312e9c9776c21.js" defer="defer"></script>
+  
+
+  <title>Page not found · GitHub</title>
+
+
+
+  <meta name="route-pattern" content="/*unmatched_route(.:format)" data-turbo-transient>
+  <meta name="route-controller" content="routing_error" data-turbo-transient>
+  <meta name="route-action" content="index" data-turbo-transient>
+  <meta name="fetch-nonce" content="v2:b2c3ac58-4453-61b6-e2a4-6d30e48c8262">
+
+    
+  <meta name="current-catalog-service-hash" content="0e7d9f2726b752eb622398c9a6a6c59c01a198c6eb9c81d7ecf183ffa9291844">
+
+
+  <meta name="request-id" content="4FC9:184E7D:656353A:3C64E16:69CFAC9F" data-turbo-transient="true" /><meta name="html-safe-nonce" content="361049342f275d9124735206fc6168dec7f1fa44ad7bbbccf50436eafbc65f9a" data-turbo-transient="true" /><meta name="visitor-payload" content="eyJyZWZlcnJlciI6Imh0dHBzOi8vZ2l0aHViLmNvbS9hbGVzc2FuZHJhcGlzdS1oYXNoL2J1Zy10cmFja2VyLWVtYmVkL2VkaXQvbWFpbi9pbmRleC5odG1sIiwicmVxdWVzdF9pZCI6IjRGQzk6MTg0RTdEOjY1NjM1M0E6M0M2NEUxNjo2OUNGQUM5RiIsInZpc2l0b3JfaWQiOiIyMTA5NjMxOTQ4Mzc2MTM3NjI5IiwicmVnaW9uX2VkZ2UiOiJmcmEiLCJyZWdpb25fcmVuZGVyIjoiaWFkIn0=" data-turbo-transient="true" /><meta name="visitor-hmac" content="288203f56580a5d9ff513b5114c16b38412aa6c3d2a97d7ebedc35e40a58db03" data-turbo-transient="true" />
+
+
+
+
+  <meta name="github-keyboard-shortcuts" content="copilot" data-turbo-transient="true" />
+  
+
+  <meta name="selected-link" value="/sessions/determined-great-noether/mnt/outputs/index.html" data-turbo-transient>
+  <link rel="assets" href="https://github.githubassets.com/">
+
+    <meta name="google-site-verification" content="Apib7-x98H0j5cPqHWwSMm6dNU4GmODRoqxLiDzdx9I">
+
+<meta name="octolytics-url" content="https://collector.github.com/github/collect" /><meta name="octolytics-actor-id" content="273135786" /><meta name="octolytics-actor-login" content="alessandrapisu-hash" /><meta name="octolytics-actor-hash" content="a747153f053e3bb0d4ce4fada25b6e1c9baa5e041c2a8d99bee9556e83f699b9" />
+
+<meta name="octolytics-page-type" content="marketing" />
+
+
+
+  
+
+  
+
+
+
+
+    <meta name="user-login" content="alessandrapisu-hash">
+
+  <link rel="sudo-modal" href="/sessions/sudo_modal">
+
+    <meta name="viewport" content="width=device-width">
+
+    
+
+      <meta name="description" content="GitHub is where people build software. More than 150 million people use GitHub to discover, fork, and contribute to over 420 million projects.">
+
+      <link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="GitHub">
+
+    <link rel="fluid-icon" href="https://github.com/fluidicon.png" title="GitHub">
+    <meta property="fb:app_id" content="1401488693436528">
+    <meta name="apple-itunes-app" content="app-id=1477376905, app-argument=https://github.com/sessions/determined-great-noether/mnt/outputs/index.html" />
+
+      <meta property="og:url" content="https://github.com">
+  <meta property="og:site_name" content="GitHub">
+  <meta property="og:title" content="Build software better, together">
+  <meta property="og:description" content="GitHub is where people build software. More than 150 million people use GitHub to discover, fork, and contribute to over 420 million projects.">
+  <meta property="og:image" content="https://github.githubassets.com/assets/github-logo-55c5b9a1fe52.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="1200">
+  <meta property="og:image" content="https://github.githubassets.com/assets/github-mark-57519b92ca4e.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="620">
+  <meta property="og:image" content="https://github.githubassets.com/assets/github-octocat-13c86b8b336d.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="620">
+
+  <meta property="twitter:site" content="github">
+  <meta property="twitter:site:id" content="13334762">
+  <meta property="twitter:creator" content="github">
+  <meta property="twitter:creator:id" content="13334762">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="GitHub">
+  <meta property="twitter:description" content="GitHub is where people build software. More than 150 million people use GitHub to discover, fork, and contribute to over 420 million projects.">
+  <meta property="twitter:image" content="https://github.githubassets.com/assets/github-logo-55c5b9a1fe52.png">
+  <meta property="twitter:image:width" content="1200">
+  <meta property="twitter:image:height" content="1200">
+
+
+      <link rel="shared-web-socket" href="wss://alive.github.com/_sockets/u/273135786/ws?session=eyJ2IjoiVjMiLCJ1IjoyNzMxMzU3ODYsInMiOjIwMzc3ODY5MzEsImMiOjExNjM0ODcwNjIsInQiOjE3NzUyMTc4MjN9--7000a8a6756aa04180a1145e0e6aa42e10b913ab8d70e259823c11358dfd7fe9" data-refresh-url="/_alive" data-session-id="8c5bce51df3137fba7a80dd722986014049bef05deeffba62a5992d7bce6a112">
+      <link rel="shared-web-socket-src" href="/assets-cdn/worker/socket-worker-7c82e8f232ff0383.js">
+
+      <link rel="service-worker-src" href="/assets-cdn/worker/service-worker-b7a2b32f78716453.js?current_user=alessandrapisu-hash&amp;errors_url=https%3A%2F%2Fapi.github.com%2F_private%2Fbrowser%2Ferrors&amp;release=2f925ec0ea72e035ff4a4941945074baa1619e04&amp;actor_id=273135786&amp;is_staff=false&amp;analytics_collector_url=https%3A%2F%2Fcollector.github.com%2Fgithub%2Fcollect">
+
+      <meta name="hostname" content="github.com">
+
+
+      <meta name="keyboard-shortcuts-preference" content="all">
+      <meta name="hovercards-preference" content="true">
+      <meta name="announcement-preference-hovercard" content="true">
+
+        <meta name="expected-hostname" content="github.com">
+
+
+  <meta http-equiv="x-pjax-version" content="054bece0cc73f4e58bd37a50ea11775db0ea1cc2ed8316bfe9df2d6680f6e202" data-turbo-track="reload">
+  <meta http-equiv="x-pjax-csp-version" content="568c098497d98702bac1642a2a853732a047a6ced28eabd3e15d50041a890235" data-turbo-track="reload">
+  <meta http-equiv="x-pjax-css-version" content="20fcfbab4ff75c6eb07df12ea46a99278a956a46f28b2d7e4e7233e3a2a3251e" data-turbo-track="reload">
+  <meta http-equiv="x-pjax-js-version" content="c1fdd7a494e593945bace0638d7b9b4f48b42270f0b51aec4c7da7d5c9e3e30d" data-turbo-track="reload">
+
+  <meta name="turbo-cache-control" content="no-preview" data-turbo-transient="">
+
+      <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/site-4884328cf1d6633f.css" />
+  <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/error-9736b9816c3df531.css" />
+  <meta name="is_logged_out_page" content="true">
+
+  
+
+
+
+      <link rel="canonical" href="https://github.com/sessions/determined-great-noether/mnt/outputs/index.html" data-turbo-transient>
+
+
+    <meta name="turbo-body-classes" content="logged-in env-production page-responsive min-height-full d-flex flex-column">
+  <meta name="disable-turbo" content="false">
+
+
+  <meta name="browser-stats-url" content="https://api.github.com/_private/browser/stats">
+
+  <meta name="browser-errors-url" content="https://api.github.com/_private/browser/errors">
+
+  <meta name="release" content="2f925ec0ea72e035ff4a4941945074baa1619e04">
+  <meta name="ui-target" content="full">
+
+  <link rel="mask-icon" href="https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg" color="#000000">
+  <link rel="alternate icon" class="js-site-favicon" type="image/png" href="https://github.githubassets.com/favicons/favicon.png">
+  <link rel="icon" class="js-site-favicon" type="image/svg+xml" href="https://github.githubassets.com/favicons/favicon.svg" data-base-href="https://github.githubassets.com/favicons/favicon">
+
+<meta name="theme-color" content="#1e2327">
+<meta name="color-scheme" content="light dark" />
+
+
+  <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials">
+
+  </head>
+
+  <body class="logged-in env-production page-responsive min-height-full d-flex flex-column" style="word-wrap: break-word;" >
+    <div data-turbo-body class="logged-in env-production page-responsive min-height-full d-flex flex-column" style="word-wrap: break-word;" >
+      <div id="__primerPortalRoot__" role="region" style="z-index: 1000; position: absolute; width: 100%;" data-turbo-permanent></div>
+      
+
+    <div class="position-relative header-wrapper js-header-wrapper ">
+      <a href="#start-of-content" data-skip-target-assigned="false" class="tmp-p-3 color-bg-accent-emphasis color-fg-on-emphasis show-on-focus js-skip-to-content">Skip to content</a>
+
+      <span data-view-component="true" class="progress-pjax-loader Progress position-fixed width-full">
+    <span style="width: 0%;" data-view-component="true" class="Progress-item progress-pjax-loader-bar left-0 top-0 color-bg-accent-emphasis"></span>
+</span>      
+      
+      <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react-css.a2f41fc3ac05567f.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/keyboard-shortcuts-dialog.f581ff34f52b4167.module.css" />
+
+<react-partial
+  partial-name="keyboard-shortcuts-dialog"
+  data-ssr="false"
+  data-attempted-ssr="false"
+  data-react-profiling="false"
+>
+  
+  <script type="application/json" data-target="react-partial.embeddedData">{"props":{"docsUrl":"https://docs.github.com/get-started/accessibility/keyboard-shortcuts"}}</script>
+  <div data-target="react-partial.reactRoot"></div>
+</react-partial>
+
+
+
+
+
+      
+
+          
+
+                  <link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/primer-react-css.a2f41fc3ac05567f.module.css" />
+<link crossorigin="anonymous" media="all" rel="stylesheet" href="https://github.githubassets.com/assets/global-nav-bar.b54f06ae93072bb1.module.css" />
+
+<react-partial
+  partial-name="global-nav-bar"
+  data-ssr="true"
+  data-attempted-ssr="true"
+  data-react-profiling="false"
+>
+  
+  <script type="application/json" data-target="react-partial.embeddedData">{"props":{"contextRegion":{},"userMenu":{"owner":{"login":"alessandrapisu-hash","name":null,"avatarUrl":"https://avatars.githubusercontent.com/u/273135786?v=4"}},"headerLogo":{"href":"/","aria-label":"Homepage "},"notifications":{"indicatorMode":"none","websocketChannel":"eyJjIjoibm90aWZpY2F0aW9uLWNoYW5nZWQ6MjczMTM1Nzg2IiwidCI6MTc3NTIxNzgyM30=--a6940e02db4b98d3da88eff13589aaa6c6ec4eaa9dee6dd1d8fc89778353bcea","fetchIndicatorSrc":"/notifications/indicator","fetchIndicatorEnabled":true},"issues":{"href":"/issues"},"pulls":{"href":"/pulls"},"contributedRepos":{"show":true,"href":"/repos"},"copilot":{"show":true,"showAgentsButton":false,"copilotChatUrl":"/github-copilot/chat?skip_anchor=true","copilotApiUrl":"https://api.individual.githubcopilot.com"},"search":{"show":true,"showCommandPalette":false,"isSearchPage":false,"isJumpToSearch":false,"searchContext":{}},"enterpriseBanner":{"show":false},"globalTransactionalMessage":null,"payloadsUrl":"/_global-navigation/payloads.json?return_to=https%3A%2F%2Fgithub.com%2Fsessions%2Fdetermined-great-noether%2Fmnt%2Foutputs%2Findex.html"}}</script>
+  <div data-target="react-partial.reactRoot"><link rel="preload" as="image" href="https://avatars.githubusercontent.com/u/273135786?v=4&amp;size=64"/><header role="banner" aria-label="Global Navigation Menu" class="GlobalNav styles-module__appHeader__YzYWk prc-Stack-Stack-UQ9k6" data-gap="none" data-direction="vertical" data-align="stretch" data-wrap="nowrap" data-justify="start" data-padding="none"><div class="prc-Stack-Stack-UQ9k6" data-direction="horizontal" data-align="center" data-wrap="nowrap" data-justify="center" data-padding="none"><div data-testid="top-nav-left" class="styles-module__left__Fylw7 prc-Stack-Stack-UQ9k6" data-gap="condensed" data-direction="horizontal" data-align="stretch" data-wrap="nowrap" data-justify="start" data-padding="normal"><div data-loading-wrapper="true"><button data-component="IconButton" type="button" aria-haspopup="dialog" class="prc-Button-ButtonBase-9n-Xk styles-module__appHeaderButton__axedQ prc-Button-IconButton-fyge7" data-loading="false" data-no-visuals="true" data-size="medium" data-variant="invisible" aria-labelledby="_R_apb_"><svg aria-hidden="true" focusable="false" class="octicon octicon-three-bars" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" display="inline-block" overflow="visible" style="vertical-align:text-bottom"><path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75ZM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Z"></path></svg></button></div><span class="prc-TooltipV2-Tooltip-tLeuB" data-direction="s" aria-hidden="true" id="_R_apb_">Open menu</span><a data-component="IconButton" type="button" class="prc-Button-ButtonBase-9n-Xk styles-module__appHeaderHome__nkA_U prc-Button-IconButton-fyge7" data-loading="false" data-no-visuals="true" data-size="medium" data-variant="invisible" aria-labelledby="_R_cpb_" href="/" data-discover="true"><svg aria-hidden="true" focusable="false" class="octicon octicon-mark-github" viewBox="0 0 24 24" width="32" height="32" fill="currentColor" display="inline-block" overflow="visible" style="vertical-align:text-bottom"><path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"></path></svg></a><span class="prc-TooltipV2-Tooltip-tLeuB" data-direction="s" aria-hidden="true"><span id="_R_cpb_">Homepage <span class="prc-src-InternalVisuallyHidden-2YaI6">(<!-- -->g then d<!-- -->)</span></span><span class="prc-TooltipV2-KeybindingHintContainer-Ymj-3 prc-TooltipV2-HasTextBefore-fdOXj" aria-hidden="true"><kbd class="prc-KeybindingHint-KeybindingHint-qpYIs prc-Text-Text-9mHv3" data-testid="keybinding-hint"><span class="prc-components-Chord-DdhWN prc-components-ChordOnEmphasis-O-4BS prc-components-ChordSmall-c-P-x prc-Text-Text-9mHv3" data-kbd-chord="true"> <span class="prc-src-InternalVisuallyHidden-2YaI6">g</span><span aria-hidden="true">G</span></span><span class="prc-src-InternalVisuallyHidden-2YaI6">then</span> <sp
