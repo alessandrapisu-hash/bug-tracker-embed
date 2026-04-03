@@ -404,7 +404,7 @@ function exportCSV() {
   const t=filtered();
   const header=['Title','Channel','Tags','Status','Date Reported','Slack URL','ClickUp URL'];
   const rows=t.map(x=>[x.title,x.channel,x.tags.join('; '),x.status,x.date,x.slack,x.clickup]);
-  const csv=[header,...rows].map(r=>r.map(v=>`"${(v||'').replace(/"\/g,'""')}"`).join(',')).join('\n');
+  const csv=[header,...rows].map(r=>r.map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
