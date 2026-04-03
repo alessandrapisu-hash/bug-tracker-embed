@@ -1,421 +1,619 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Waalaxy Support Bug Dashboard</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;}
-  /* HEADER */
-  header{position:sticky;top:0;z-index:100;background:#1a1d2e;border-bottom:1px solid #2d3148;padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  header h1{font-size:18px;font-weight:700;color:#fff;flex:1;}
-  .badge{background:#1e3a5f;color:#60a5fa;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;border:1px solid #2563eb;}
-  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s;}
-  .btn-refresh{background:#6366f1;color:#fff;}
-  .btn-csv{background:#059669;color:#fff;}
-  .btn-pdf{background:#64748b;color:#fff;}
-  .btn:hover{opacity:.85;}
-  /* FILTER BAR */
-  .filter-bar{background:#1a1d2e;border-bottom:1px solid #2d3148;padding:10px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .preset-btn{padding:5px 14px;border-radius:20px;border:1px solid #2d3148;background:transparent;color:#94a3b8;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;}
-  .preset-btn.active,.preset-btn:hover{background:#6366f1;color:#fff;border-color:#6366f1;}
-  .date-input{background:#0f1117;border:1px solid #2d3148;color:#e2e8f0;padding:5px 10px;border-radius:8px;font-size:12px;}
-  .filter-sep{color:#2d3148;margin:0 4px;}
-  /* MAIN */
-  main{padding:20px 24px;max-width:1400px;margin:0 auto;}
-  /* KPI */
-  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px;}
-  .kpi-card{background:#1a1d2e;border:1px solid #2d3148;border-radius:12px;padding:16px;text-align:center;}
-  .kpi-card .val{font-size:32px;font-weight:800;line-height:1;}
-  .kpi-card .lbl{font-size:11px;color:#64748b;margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
-  .kpi-card .sub{font-size:11px;color:#475569;margin-top:4px;}
-  /* CHARTS */
-  .charts-grid{display:grid;grid-template-columns:1fr 1.4fr 1.4fr;gap:16px;margin-bottom:24px;}
-  .chart-card{background:#1a1d2e;border:1px solid #2d3148;border-radius:12px;padding:16px;}
-  .chart-card h3{font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;}
-  .chart-wrap{position:relative;}
-  /* TICKETS */
-  .tickets-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
-  .tickets-col{background:#1a1d2e;border:1px solid #2d3148;border-radius:12px;padding:16px;}
-  .tickets-col h2{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .ticket-item{background:#0f1117;border:1px solid #2d3148;border-radius:8px;padding:12px;margin-bottom:8px;}
-  .ticket-item:last-child{margin-bottom:0;}
-  .ticket-title{font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:6px;line-height:1.4;}
-  .ticket-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .ticket-channel{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;}
-  .ch-business{background:#1e3a5f;color:#60a5fa;}
-  .ch-linkedin{background:#2d1e5f;color:#a78bfa;}
-  .ch-prospection{background:#1e3d2d;color:#34d399;}
-  .ticket-tag{font-size:10px;padding:2px 6px;border-radius:6px;background:#1e293b;color:#94a3b8;border:1px solid #334155;}
-  .ticket-date{font-size:11px;color:#475569;margin-left:auto;}
-  .ticket-links{margin-top:8px;display:flex;gap:8px;}
-  .ticket-link{font-size:11px;color:#6366f1;text-decoration:none;}
-  .ticket-link:hover{text-decoration:underline;}
-  .ticket-link.clickup{color:#7c3aed;}
-  /* ESCALATIONS TABLE */
-  .escl-card{background:#1a1d2e;border:1px solid #2d3148;border-radius:12px;padding:16px;margin-bottom:24px;}
-  .escl-card h2{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  table{width:100%;border-collapse:collapse;}
-  th{text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid #2d3148;}
-  td{padding:8px 10px;font-size:13px;border-bottom:1px solid #1e293b;vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  .status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:600;}
-  .s-open{background:#3b1e1e;color:#f87171;}
-  .s-inprogress{background:#3b2e0e;color:#fbbf24;}
-  .s-resolved{background:#1a2e1a;color:#4ade80;}
-  .s-notabug{background:#1e2030;color:#94a3b8;}
-  /* FOOTER */
-  footer{text-align:center;padding:20px;color:#475569;font-size:12px;border-top:1px solid #2d3148;margin-top:8px;}
-  footer a{color:#6366f1;text-decoration:none;}
-  /* EMPTY */
-  .empty-msg{color:#475569;font-size:13px;text-align:center;padding:20px;}
-  /* PRINT */
-  @media print{
-    .filter-bar,.no-print,header .btn{display:none!important;}
-    body{background:#fff;color:#000;}
-    header{background:#fff;color:#000;position:relative;}
-    .kpi-card,.chart-card,.tickets-col,.escl-card{background:#fff;border-color:#ddd;break-inside:avoid;}
-    .ticket-item{background:#f8f8f8;}
-    table td,table th{color:#000;}
-  }
-  @media(max-width:900px){
-    .charts-grid{grid-template-columns:1fr;}
-    .tickets-row{grid-template-columns:1fr;}
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐛 Support Bug Dashboard — Waalaxy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f5f3;
+      --surface: #ffffff;
+      --surface2: #f9f9f8;
+      --border: #e8e8e6;
+      --text: #1a1a1a;
+      --text2: #6b6b6b;
+      --text3: #9b9b9b;
+      --open: #ef4444;
+      --progress: #f59e0b;
+      --resolved: #22c55e;
+      --notbug: #94a3b8;
+      --accent: #6366f1;
+      --business: #3b82f6;
+      --lkhackers: #f97316;
+      --prospection: #8b5cf6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-logo { font-size: 22px; }
+    .header-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .header-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .header-badge {
+      font-size: 11px; font-weight: 600;
+      background: #dcfce7; color: #16a34a;
+      padding: 3px 10px; border-radius: 99px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .header-badge::before {
+      content: ''; width: 7px; height: 7px;
+      border-radius: 50%; background: #16a34a;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .kpi.total::after { background: var(--accent); }
+    .kpi.open::after { background: var(--open); }
+    .kpi.progress::after { background: var(--progress); }
+    .kpi.resolved::after { background: var(--resolved); }
+    .kpi.notbug::after { background: var(--notbug); }
+    .kpi.escalated::after { background: #ec4899; }
+    .kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .kpi-value { font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+    .kpi.total .kpi-value { color: var(--accent); }
+    .kpi.open .kpi-value { color: var(--open); }
+    .kpi.progress .kpi-value { color: var(--progress); }
+    .kpi.resolved .kpi-value { color: var(--resolved); }
+    .kpi.notbug .kpi-value { color: var(--notbug); }
+    .kpi.escalated .kpi-value { color: #ec4899; }
+    .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 700;
+      color: var(--text); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .chart-wrap { position: relative; }
+    .legend { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .legend-item {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .legend-label { display: flex; align-items: center; gap: 6px; color: var(--text2); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .legend-count { font-weight: 700; color: var(--text); }
+    .tickets-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .ticket-list { display: flex; flex-direction: column; gap: 8px; }
+    .ticket {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+      align-items: start;
+    }
+    .ticket-title {
+      font-size: 12px; font-weight: 600; color: var(--text);
+      line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ticket-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+    .tag {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .tag-channel-business { background: #dbeafe; color: #1d4ed8; }
+    .tag-channel-lk { background: #ffedd5; color: #c2410c; }
+    .tag-channel-prospection { background: #ede9fe; color: #6d28d9; }
+    .tag-status-open { background: #fee2e2; color: #dc2626; }
+    .tag-status-progress { background: #fef3c7; color: #d97706; }
+    .tag-status-resolved { background: #dcfce7; color: #16a34a; }
+    .tag-label { background: #f1f5f9; color: #475569; }
+    .ticket-links { display: flex; gap: 6px; align-items: center; }
+    .ticket-link {
+      font-size: 10px; color: var(--text3);
+      text-decoration: none; opacity: 0.7;
+    }
+    .ticket-link:hover { opacity: 1; color: var(--accent); }
+    .escalated-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%; background: #ec4899;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .escalations-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .escalations-table th {
+      text-align: left; padding: 8px 10px;
+      color: var(--text3); font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .escalations-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .escalations-table tr:last-child td { border-bottom: none; }
+    .escalations-table tr:hover td { background: var(--surface2); }
+    .clickup-link {
+      font-size: 11px; font-weight: 600;
+      color: var(--accent); text-decoration: none;
+      background: #eef2ff; padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .footer {
+      text-align: center; padding: 20px;
+      font-size: 11px; color: var(--text3);
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    @media (max-width: 1100px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+      .charts-row { grid-template-columns: 1fr 1fr; }
+      .tickets-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .main { padding: 16px; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .header { padding: 12px 16px; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <h1>🐛 Waalaxy Support Bug Dashboard</h1>
-  <span class="badge">🟢 Live · Notion</span>
-  <button class="btn btn-refresh no-print" onclick="triggerRefresh()">↻ Refresh</button>
-  <button class="btn btn-csv no-print" onclick="exportCSV()">⬇ CSV</button>
-  <button class="btn btn-pdf no-print" onclick="exportPDF()">🖨 PDF</button>
+<header class="header">
+  <div class="header-left">
+    <span class="header-logo">🐛</span>
+    <div>
+      <div class="header-title">Support Bug Dashboard — Waalaxy</div>
+      <div class="header-sub">#support-business · #support-linkedin-hackers · #support-prospection</div>
+    </div>
+  </div>
+  <div class="header-badge">Live · Notion</div>
 </header>
 
-<div class="filter-bar no-print">
-  <button class="preset-btn active" onclick="setPreset('all',this)">All time</button>
-  <button class="preset-btn" onclick="setPreset('7d',this)">Last 7 days</button>
-  <button class="preset-btn" onclick="setPreset('30d',this)">Last 30 days</button>
-  <button class="preset-btn" onclick="setPreset('custom',this)">Custom</button>
-  <span class="filter-sep">|</span>
-  <input type="date" id="dateFrom" class="date-input" onchange="onCustomDate()" style="display:none"/>
-  <input type="date" id="dateTo" class="date-input" onchange="onCustomDate()" style="display:none"/>
-</div>
+<main class="main">
 
-<main>
-  <!-- KPI -->
-  <div class="kpi-grid" id="kpiGrid"></div>
-
-  <!-- Charts -->
-  <div class="charts-grid">
-    <div class="chart-card">
-      <h3>Status Breakdown</h3>
-      <div class="chart-wrap" style="height:200px"><canvas id="chartDonut"></canvas></div>
+  <div class="kpi-row">
+    <div class="kpi total">
+      <div class="kpi-label">Total Tickets</div>
+      <div class="kpi-value">31</div>
+      <div class="kpi-sub">All time</div>
     </div>
-    <div class="chart-card">
-      <h3>Tickets by Channel</h3>
-      <div class="chart-wrap" style="height:200px"><canvas id="chartChannel"></canvas></div>
+    <div class="kpi open">
+      <div class="kpi-label">🔴 Open</div>
+      <div class="kpi-value">7</div>
+      <div class="kpi-sub">Need action</div>
     </div>
-    <div class="chart-card">
-      <h3>Top Tags</h3>
-      <div class="chart-wrap" style="height:200px"><canvas id="chartTags"></canvas></div>
+    <div class="kpi progress">
+      <div class="kpi-label">🟡 In Progress</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-sub">Being worked</div>
+    </div>
+    <div class="kpi resolved">
+      <div class="kpi-label">🟢 Resolved</div>
+      <div class="kpi-value">17</div>
+      <div class="kpi-sub">54.8% rate</div>
+    </div>
+    <div class="kpi notbug">
+      <div class="kpi-label">⚪ Not a Bug</div>
+      <div class="kpi-value">2</div>
+      <div class="kpi-sub">6.5% of total</div>
+    </div>
+    <div class="kpi escalated">
+      <div class="kpi-label">🚀 Dev Escalations</div>
+      <div class="kpi-value">11</div>
+      <div class="kpi-sub">35.5% escalation</div>
     </div>
   </div>
 
-  <!-- Open + In-Progress columns -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">📊 By Status</div>
+      <div class="chart-wrap" style="height:160px">
+        <canvas id="chartStatus"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#ef4444"></div>Open</div>
+          <div class="legend-count">7</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#f59e0b"></div>In Progress</div>
+          <div class="legend-count">5</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#22c55e"></div>Resolved</div>
+          <div class="legend-count">17</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#94a3b8"></div>Not a Bug</div>
+          <div class="legend-count">2</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌐 By Channel</div>
+      <div class="chart-wrap" style="height:160px">
+        <canvas id="chartChannel"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#3b82f6"></div>Business</div>
+          <div class="legend-count">12</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#f97316"></div>LinkedIn Hackers</div>
+          <div class="legend-count">10</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-label"><div class="legend-dot" style="background:#8b5cf6"></div>Prospection</div>
+          <div class="legend-count">9</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ By Tag (top categories)</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="chartTag"></canvas>
+      </div>
+    </div>
+  </div>
+
   <div class="tickets-row">
-    <div class="tickets-col">
-      <h2>🔴 Open Tickets <span id="openCount" style="color:#64748b;font-weight:400;font-size:12px"></span></h2>
-      <div id="openList"></div>
+    <div class="card">
+      <div class="card-title">🔴 Open Tickets <span style="color:var(--text3);font-weight:400;font-size:12px">(7)</span></div>
+      <div class="ticket-list">
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">INBOX — Pb injection inbox (template / saved reply)</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-prospection">Prospection</span>
+              <span class="tag tag-label">Inbox</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Prospects sans photo de profil dans Waalaxy</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-prospection">Prospection</span>
+              <span class="tag tag-label">Prospects</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Synchro Make — données vides pour connected at</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">CRM &amp; Webhooks</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">CRM Sync Hubspot — prospects non synchronisés après Visit</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">CRM &amp; Webhooks</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c8xaa8h" target="_blank">86c8xaa8h</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">OAuth Hubspot — impossible de taper dans le champ</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">CRM &amp; Webhooks</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774514535718419" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">L'heure du scheduled message est tronquée</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">UI/UX</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">STAFF — J'ai le trial by card alors que je suis owner</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">Trial &amp; Billing</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="tickets-col">
-      <h2>🟡 In Progress <span id="ipCount" style="color:#64748b;font-weight:400;font-size:12px"></span></h2>
-      <div id="ipList"></div>
+
+    <div class="card">
+      <div class="card-title">🟡 In Progress <span style="color:var(--text3);font-weight:400;font-size:12px">(5)</span></div>
+      <div class="ticket-list">
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">500 sur le duplicate de campagne</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-prospection">Prospection</span>
+              <span class="tag tag-label">Campagne</span>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="ticket-link" href="https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099" target="_blank">Slack ↗</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Ambassadeur — toutes les commissions sont pending</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">Ambassadors</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c8xcwuw" target="_blank">86c8xcwuw</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Ambassadeur — Remboursement / Annulation de commission</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-lk">LinkedIn Hackers</span>
+              <span class="tag tag-label">Ambassadors</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c92tau2" target="_blank">86c92tau2</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Trial LL l'emporte sur l'abo permanent même si inférieur</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">Trial &amp; Billing</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c91qugt" target="_blank">86c91qugt</a>
+          </div>
+        </div>
+        <div class="ticket">
+          <div>
+            <div class="ticket-title">Inbox : send later template ajoute dans l'input du message</div>
+            <div class="ticket-meta">
+              <span class="tag tag-channel-business">Business</span>
+              <span class="tag tag-label">Inbox</span>
+              <div class="escalated-dot" title="Dev escalation"></div>
+            </div>
+          </div>
+          <div class="ticket-links">
+            <a class="clickup-link" href="https://app.clickup.com/t/86c94x3xd" target="_blank">86c94x3xd</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Dev Escalations -->
-  <div class="escl-card">
-    <h2>🚀 Dev Escalations <span id="esclCount" style="color:#64748b;font-weight:400;font-size:12px"></span></h2>
-    <table>
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title">🚀 Dev Escalations — ClickUp Cards (11 tickets · 9 cards)</div>
+    <table class="escalations-table">
       <thead>
         <tr>
-          <th>Title</th>
+          <th>Bug Title</th>
           <th>Channel</th>
           <th>Status</th>
-          <th>ClickUp</th>
+          <th>ClickUp Card</th>
         </tr>
       </thead>
-      <tbody id="esclTable"></tbody>
+      <tbody>
+        <tr>
+          <td>Ambassadeur — toutes les commissions sont pending</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8xcwuw" target="_blank">86c8xcwuw</a></td>
+        </tr>
+        <tr>
+          <td>Ambassadeur — Remboursement / Annulation de commission</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c92tau2" target="_blank">86c92tau2</a></td>
+        </tr>
+        <tr>
+          <td>Trial LL l'emporte sur l'abo permanent même si inférieur</td>
+          <td><span class="tag tag-channel-business">Business</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c91qugt" target="_blank">86c91qugt</a></td>
+        </tr>
+        <tr>
+          <td>Inbox : send later template ajoute dans l'input du message</td>
+          <td><span class="tag tag-channel-business">Business</span></td>
+          <td><span class="tag tag-status-progress">In Progress</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c94x3xd" target="_blank">86c94x3xd</a></td>
+        </tr>
+        <tr>
+          <td>CRM Sync Hubspot — prospects non synchronisés après Visit</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-open">Open</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8xaa8h" target="_blank">86c8xaa8h</a></td>
+        </tr>
+        <tr>
+          <td>Quota — les quotas ne se sont pas renew aujourd'hui</td>
+          <td><span class="tag tag-channel-prospection">Prospection</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8zxwbq" target="_blank">86c8zxwbq</a></td>
+        </tr>
+        <tr>
+          <td>Impossible d'activer une campagne sans prospect</td>
+          <td><span class="tag tag-channel-prospection">Prospection</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8xq5w6" target="_blank">86c8xq5w6</a></td>
+        </tr>
+        <tr>
+          <td>Queue — le nom des actions n'apparaît plus dans le dropdown</td>
+          <td><span class="tag tag-channel-prospection">Prospection</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8y04ak" target="_blank">86c8y04ak</a></td>
+        </tr>
+        <tr>
+          <td>Import stuck at 0 — LinkedIn &amp; Sales Navigator (x3 tickets)</td>
+          <td><span class="tag tag-channel-lk">LinkedIn Hackers</span></td>
+          <td><span class="tag tag-status-resolved">Resolved</span></td>
+          <td><a class="clickup-link" href="https://app.clickup.com/t/86c8bu6yn" target="_blank">86c8bu6yn</a></td>
+        </tr>
+      </tbody>
     </table>
-    <div id="esclEmpty" class="empty-msg" style="display:none">No escalations in this period.</div>
   </div>
+
+  <div class="footer">
+    Updated April 2, 2026 · Data from <strong>Notion Bug Tracker - Dev Tickets</strong> · Waalaxy Support
+  </div>
+
 </main>
 
-<footer>
-  Updated April 3, 2026 · Data from <a href="https://www.notion.so/b5006b6c2930433bbca7681cb31193c6" target="_blank">Notion Bug Tracker - Dev Tickets</a> · Waalaxy Support
-</footer>
-
 <script>
-const TICKETS = [
-  {title:"INBOX — Pb injection inbox (template / saved reply)",channel:"Prospection",tags:["Inbox"],status:"open",date:"2026-03-20",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529",clickup:""},
-  {title:"Quota — les quotas ne se sont pas renew aujourd'hui",channel:"Prospection",tags:["Quota","Queue Actions LK"],status:"resolved",date:"2026-03-24",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774348226087889",clickup:"https://app.clickup.com/t/86c8zxwbq"},
-  {title:"Accès au compte bloqué durant la pause de l'abonnement",channel:"Business",tags:["Trial & Billing"],status:"not-a-bug",date:"2026-03-26",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774529027821089",clickup:""},
-  {title:"Trial LL l'emporte sur l'abo permanent même si l'abo est supérieur",channel:"Business",tags:["Trial & Billing"],status:"in-progress",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774596953325749",clickup:"https://app.clickup.com/t/86c91qugt"},
-  {title:"Email ne s'envoient pas — failed_to_get_access_token",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774519704550049",clickup:""},
-  {title:"Emails sortent tous en erreur — account_deleted",channel:"Business",tags:["Email"],status:"resolved",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774597002596249",clickup:""},
-  {title:"STAFF — J'ai le trial by card alors que je suis owner de ma team",channel:"Business",tags:["Trial & Billing"],status:"open",date:"2026-03-27",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319",clickup:""},
-  {title:"Problème de crédits",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"2026-03-30",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774858089935059",clickup:""},
-  {title:"Inbox : send later template ajoute dans l'input du message",channel:"Business",tags:["Inbox"],status:"in-progress",date:"2026-03-31",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774968082791669",clickup:"https://app.clickup.com/t/86c94x3xd"},
-  {title:"500 sur le duplicate de campagne",channel:"Prospection",tags:["Campagne"],status:"in-progress",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099",clickup:""},
-  {title:"Import stuck à 0 — impossible d'importer depuis une search",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"2026-04-01",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719",clickup:"https://app.clickup.com/t/86c8bu6yn"},
-  {title:"Prospect sorti de campagne apparaît toujours en cours à l'étape CRM on reply",channel:"Prospection",tags:["Prospects","Campagne"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774540739410509",clickup:""},
-  {title:"Messages non envoyés après le délai dans la campagne",channel:"Prospection",tags:["Campagne"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774015186356579",clickup:""},
-  {title:"Impossible d'activer une campagne sans prospect — régression",channel:"Prospection",tags:["Campagne"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773935005912799",clickup:"https://app.clickup.com/t/86c8xq5w6"},
-  {title:"Prospects sans photo de profil dans Waalaxy alors qu'ils en ont une sur LinkedIn",channel:"Prospection",tags:["Prospects"],status:"open",date:"",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669",clickup:""},
-  {title:"Queue — le nom des actions n'apparaît plus dans le dropdown",channel:"Prospection",tags:["Queue Actions LK"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773992848066459",clickup:"https://app.clickup.com/t/86c8y04ak"},
-  {title:"Prospects enrichis n'apparaissent pas dans le détail de campagne (email finder)",channel:"Prospection",tags:["Campagne","Prospects"],status:"not-a-bug",date:"",slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774270614676229",clickup:""},
-  {title:"Synchro Make — données vides pour 'connected at' et 'profile status'",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719",clickup:""},
-  {title:"Ambassadeur — toutes les commissions sont pending",channel:"LinkedIn Hackers",tags:["Ambassadors"],status:"in-progress",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773909369613989",clickup:"https://app.clickup.com/t/86c8xcwuw"},
-  {title:"CRM Sync Hubspot — prospects non synchronisés après Visit",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773833542537789",clickup:"https://app.clickup.com/t/86c8xaa8h"},
-  {title:"Ambassadeur — Remboursement / Annulation de commission non effective",channel:"LinkedIn Hackers",tags:["Ambassadors"],status:"in-progress",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774533794978789",clickup:"https://app.clickup.com/t/86c92tau2"},
-  {title:"Import stuck at 0 — LinkedIn & Sales Navigator",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919",clickup:"https://app.clickup.com/t/86c8bu6yn"},
-  {title:"Module Waalaxy introuvable sur Make",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1772705543606839",clickup:""},
-  {title:"Injections — User freemium a un pb d'injection des saved reply côté LinkedIn",channel:"LinkedIn Hackers",tags:["Inbox"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773852303674379",clickup:""},
-  {title:"OAuth Hubspot — impossible de taper dans le champ 'j'accepte le risque'",channel:"LinkedIn Hackers",tags:["CRM & Webhooks"],status:"open",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774514535718419",clickup:""},
-  {title:"Imports down — prospects en erreur 'LinkedIn Member'",channel:"LinkedIn Hackers",tags:["Import"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919",clickup:"https://app.clickup.com/t/86c8bu6yn"},
-  {title:"EXTENSION — Il ne parvient pas à créer son compte",channel:"Business",tags:["Extension"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774369347990139",clickup:""},
-  {title:"EMAIL — Impossible de faire un test d'envoi",channel:"Business",tags:["Email"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774623653587859",clickup:""},
-  {title:"L'heure du scheduled message est tronquée dans le side panel",channel:"Business",tags:["UI/UX"],status:"open",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949",clickup:""},
-  {title:"User en BRL n'a pas la page de pricing quarterly",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348546626999",clickup:""},
-  {title:"Paiement en attente et toast d'erreur alors que l'abo est annulé depuis 2022",channel:"Business",tags:["Trial & Billing"],status:"resolved",date:"",slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348357429689",clickup:""}
-];
-
-// Chart registry
-const CHARTS = {};
-function mkChart(id, cfg){
-  if(CHARTS[id]) CHARTS[id].destroy();
-  const ctx = document.getElementById(id);
-  if(!ctx) return;
-  CHARTS[id] = new Chart(ctx, cfg);
-}
-
-// Filter state
-let fStart = null, fEnd = null;
-
-function filtered(){
-  return TICKETS.filter(t => {
-    if(!fStart && !fEnd) return true;
-    if(!t.date) return true; // undated tickets always show
-    const d = t.date;
-    if(fStart && d < fStart) return false;
-    if(fEnd && d > fEnd) return false;
-    return true;
-  });
-}
-
-function setPreset(p, btn){
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const from = document.getElementById('dateFrom');
-  const to   = document.getElementById('dateTo');
-  if(p==='custom'){
-    from.style.display=''; to.style.display='';
-    fStart = from.value||null; fEnd = to.value||null;
-  } else {
-    from.style.display='none'; to.style.display='none';
-    const now = new Date('2026-04-03');
-    if(p==='all'){ fStart=null; fEnd=null; }
-    else if(p==='7d'){ const d=new Date(now); d.setDate(d.getDate()-7); fStart=d.toISOString().slice(0,10); fEnd=null; }
-    else if(p==='30d'){ const d=new Date(now); d.setDate(d.getDate()-30); fStart=d.toISOString().slice(0,10); fEnd=null; }
-  }
-  render();
-}
-
-function onCustomDate(){
-  fStart = document.getElementById('dateFrom').value||null;
-  fEnd   = document.getElementById('dateTo').value||null;
-  render();
-}
-
-function channelClass(ch){
-  if(ch==='Business') return 'ch-business';
-  if(ch==='LinkedIn Hackers') return 'ch-linkedin';
-  return 'ch-prospection';
-}
-
-function statusBadge(s){
-  if(s==='open') return '<span class="status-badge s-open">🔴 Open</span>';
-  if(s==='in-progress') return '<span class="status-badge s-inprogress">🟡 In Progress</span>';
-  if(s==='resolved') return '<span class="status-badge s-resolved">🟢 Resolved</span>';
-  return '<span class="status-badge s-notabug">⚪ Not a Bug</span>';
-}
-
-function ticketCard(t){
-  const chCls = channelClass(t.channel);
-  const tags = t.tags.map(tg=>`<span class="ticket-tag">${tg}</span>`).join(' ');
-  const dateStr = t.date ? `<span class="ticket-date">${t.date}</span>` : '';
-  let links = '';
-  if(t.slack) links += `<a class="ticket-link" href="${t.slack}" target="_blank">🔗 Slack</a>`;
-  if(t.clickup) links += `<a class="ticket-link clickup" href="${t.clickup}" target="_blank">🟣 ClickUp</a>`;
-  return `<div class="ticket-item">
-    <div class="ticket-title">${escHtml(t.title)}</div>
-    <div class="ticket-meta">
-      <span class="ticket-channel ${chCls}">${t.channel}</span>
-      ${tags}
-      ${dateStr}
-    </div>
-    ${links ? `<div class="ticket-links">${links}</div>` : ''}
-  </div>`;
-}
-
-function escHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function render(){
-  const data = filtered();
-  const total    = data.length;
-  const open     = data.filter(t=>t.status==='open').length;
-  const ip       = data.filter(t=>t.status==='in-progress').length;
-  const resolved = data.filter(t=>t.status==='resolved').length;
-  const nab      = data.filter(t=>t.status==='not-a-bug').length;
-  const escl     = data.filter(t=>t.clickup).length;
-  const resRate  = total ? Math.round(resolved/total*100) : 0;
-  const esclRate = total ? Math.round(escl/total*100) : 0;
-
-  // KPIs
-  document.getElementById('kpiGrid').innerHTML = `
-    <div class="kpi-card"><div class="val">${total}</div><div class="lbl">Total Tickets</div></div>
-    <div class="kpi-card"><div class="val" style="color:#f87171">${open}</div><div class="lbl">🔴 Open</div></div>
-    <div class="kpi-card"><div class="val" style="color:#fbbf24">${ip}</div><div class="lbl">🟡 In Progress</div></div>
-    <div class="kpi-card"><div class="val" style="color:#4ade80">${resolved}</div><div class="lbl">🟢 Resolved</div><div class="sub">${resRate}% resolution rate</div></div>
-    <div class="kpi-card"><div class="val" style="color:#94a3b8">${nab}</div><div class="lbl">⚪ Not a Bug</div></div>
-    <div class="kpi-card"><div class="val" style="color:#a78bfa">${escl}</div><div class="lbl">🚀 Dev Escalations</div><div class="sub">${esclRate}% escalation rate</div></div>
-  `;
-
-  // Donut chart
-  mkChart('chartDonut',{
-    type:'doughnut',
-    data:{
-      labels:['Open','In Progress','Resolved','Not a Bug'],
-      datasets:[{
-        data:[open,ip,resolved,nab],
-        backgroundColor:['#ef4444','#f59e0b','#22c55e','#64748b'],
-        borderWidth:0
+  new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Open', 'In Progress', 'Resolved', 'Not a Bug'],
+      datasets: [{
+        data: [7, 5, 17, 2],
+        backgroundColor: ['#ef4444','#f59e0b','#22c55e','#94a3b8'],
+        borderWidth: 0,
+        hoverOffset: 4
       }]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11},boxWidth:12}}}}
-  });
-
-  // Stacked bar by channel
-  const channels=['Business','LinkedIn Hackers','Prospection'];
-  const statusKeys=['open','in-progress','resolved','not-a-bug'];
-  const statusColors=['#ef4444','#f59e0b','#22c55e','#64748b'];
-  const statusLabels=['Open','In Progress','Resolved','Not a Bug'];
-  const chDatasets = statusKeys.map((sk,i)=>({
-    label:statusLabels[i],
-    data:channels.map(ch=>data.filter(t=>t.channel===ch&&t.status===sk).length),
-    backgroundColor:statusColors[i]
-  }));
-  mkChart('chartChannel',{
-    type:'bar',
-    data:{labels:channels,datasets:chDatasets},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11},boxWidth:12}}},
-      scales:{
-        x:{stacked:true,ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}},
-        y:{stacked:true,ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}}
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '65%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } }
       }
     }
   });
 
-  // Horizontal bar — top tags
-  const tagCounts={};
-  data.forEach(t=>t.tags.forEach(tg=>tagCounts[tg]=(tagCounts[tg]||0)+1));
-  const sorted = Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  mkChart('chartTags',{
-    type:'bar',
-    data:{
-      labels:sorted.map(e=>e[0]),
-      datasets:[{data:sorted.map(e=>e[1]),backgroundColor:'#6366f1',borderRadius:4}]
+  new Chart(document.getElementById('chartChannel'), {
+    type: 'bar',
+    data: {
+      labels: ['Business', 'LinkedIn Hackers', 'Prospection'],
+      datasets: [
+        { label: 'Open',        data: [2, 3, 2], backgroundColor: '#ef4444' },
+        { label: 'In Progress', data: [2, 2, 1], backgroundColor: '#f59e0b' },
+        { label: 'Resolved',    data: [7, 5, 5], backgroundColor: '#22c55e' },
+        { label: 'Not a Bug',   data: [1, 0, 1], backgroundColor: '#94a3b8' }
+      ]
     },
-    options:{
-      indexAxis:'y',
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}},
-        y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}}
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { stacked: true, grid: { color: '#f0f0ee' }, ticks: { font: { size: 10 }, stepSize: 3 } }
       }
     }
   });
 
-  // Open + In-Progress lists
-  const openTickets = data.filter(t=>t.status==='open');
-  const ipTickets   = data.filter(t=>t.status==='in-progress');
-  document.getElementById('openCount').textContent = `(${openTickets.length})`;
-  document.getElementById('ipCount').textContent   = `(${ipTickets.length})`;
-  document.getElementById('openList').innerHTML = openTickets.length
-    ? openTickets.map(ticketCard).join('')
-    : '<div class="empty-msg">No open tickets.</div>';
-  document.getElementById('ipList').innerHTML = ipTickets.length
-    ? ipTickets.map(ticketCard).join('')
-    : '<div class="empty-msg">No in-progress tickets.</div>';
-
-  // Escalations table
-  const esclTickets = data.filter(t=>t.clickup);
-  document.getElementById('esclCount').textContent = `(${esclTickets.length})`;
-  const tbody = document.getElementById('esclTable');
-  const emptyMsg = document.getElementById('esclEmpty');
-  if(esclTickets.length===0){
-    tbody.innerHTML=''; emptyMsg.style.display='';
-  } else {
-    emptyMsg.style.display='none';
-    tbody.innerHTML = esclTickets.map(t=>`<tr>
-      <td>${escHtml(t.title)}</td>
-      <td><span class="ticket-channel ${channelClass(t.channel)}">${t.channel}</span></td>
-      <td>${statusBadge(t.status)}</td>
-      <td><a href="${t.clickup}" target="_blank" class="ticket-link clickup">🟣 ${t.clickup.split('/').pop()}</a></td>
-    </tr>`).join('');
-  }
-}
-
-function triggerRefresh(){
-  window.location.href = window.location.pathname + '?v=' + Date.now();
-}
-
-function exportCSV(){
-  const BOM = '\uFEFF';
-  const headers = ['title','channel','tags','status','date','slack','clickup'];
-  const rows = TICKETS.map(t=>[
-    `"${t.title.replace(/"/g,'""')}"`,
-    `"${t.channel}"`,
-    `"${t.tags.join(';')}"`,
-    `"${t.status}"`,
-    `"${t.date}"`,
-    `"${t.slack}"`,
-    `"${t.clickup}"`
-  ].join(','));
-  const csv = BOM + [headers.join(','),...rows].join('\n');
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href=url; a.download='waalaxy-bugs-'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click(); URL.revokeObjectURL(url);
-}
-
-function exportPDF(){
-  window.print();
-}
-
-// Initial render
-render();
+  new Chart(document.getElementById('chartTag'), {
+    type: 'bar',
+    data: {
+      labels: ['Trial & Billing','Campagne','CRM & Webhooks','Inbox','Import','Email','Prospects','Queue LK','Ambassadors','Extension','UI/UX'],
+      datasets: [{
+        data: [6, 5, 4, 3, 3, 3, 3, 2, 2, 1, 1],
+        backgroundColor: ['#6366f1','#8b5cf6','#ec4899','#f97316','#f59e0b','#22c55e','#14b8a6','#3b82f6','#a855f7','#6b7280','#94a3b8'],
+        borderRadius: 4,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0f0ee' }, ticks: { font: { size: 10 }, stepSize: 1 } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
 </script>
+
 </body>
 </html>
