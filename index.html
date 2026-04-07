@@ -551,13 +551,13 @@ function toggleKpiFilter(status) {
 
 function render() {
   const grid = document.getElementById('ticketGrid');
-  const filtered = TICKETS.filter(t => {
-    const statusMatch = activeStatus === 'all' || t.status === activeStatus;
-    return statusMatch && passesDateFilter(t);
-  });
+  // Date-only filtered — KPI cards always show the full date-scoped picture, unaffected by status filter
+  const dateFiltered = TICKETS.filter(t => passesDateFilter(t));
+  // Fully filtered (date + status) — used for charts and ticket grid
+  const filtered = dateFiltered.filter(t => activeStatus === 'all' || t.status === activeStatus);
 
   document.getElementById('ticketCountLabel').textContent = '(' + filtered.length + ')';
-  updateKPIs(filtered);
+  updateKPIs(dateFiltered);
   updateCharts(filtered);
 
   if (filtered.length === 0) {
