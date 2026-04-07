@@ -88,6 +88,11 @@
     .kpi.resolved::after { background: var(--resolved); }
     .kpi.notbug::after { background: var(--notbug); }
     .kpi.escalated::after { background: #ec4899; }
+    .kpi[data-filter] { cursor: pointer; transition: box-shadow 0.15s; }
+    .kpi.open.kpi-active     { box-shadow: 0 0 0 2.5px var(--open); }
+    .kpi.progress.kpi-active { box-shadow: 0 0 0 2.5px var(--progress); }
+    .kpi.resolved.kpi-active { box-shadow: 0 0 0 2.5px var(--resolved); }
+    .kpi.notbug.kpi-active   { box-shadow: 0 0 0 2.5px var(--notbug); }
     .kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
     .kpi-value { font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
     .kpi.total .kpi-value    { color: var(--accent); }
@@ -313,33 +318,33 @@
   <div class="kpi-row">
     <div class="kpi total">
       <div class="kpi-label">Total Tickets</div>
-      <div class="kpi-value">31</div>
-      <div class="kpi-sub">All time</div>
+      <div class="kpi-value" id="kpiTotal">31</div>
+      <div class="kpi-sub" id="kpiTotalSub">All time</div>
     </div>
-    <div class="kpi open">
+    <div class="kpi open" data-filter="open" onclick="toggleKpiFilter('open')">
       <div class="kpi-label">🔴 Open</div>
-      <div class="kpi-value">7</div>
+      <div class="kpi-value" id="kpiOpen">7</div>
       <div class="kpi-sub">Need action</div>
     </div>
-    <div class="kpi progress">
+    <div class="kpi progress" data-filter="progress" onclick="toggleKpiFilter('progress')">
       <div class="kpi-label">🟡 In Progress</div>
-      <div class="kpi-value">5</div>
+      <div class="kpi-value" id="kpiProgress">5</div>
       <div class="kpi-sub">Being worked</div>
     </div>
-    <div class="kpi resolved">
+    <div class="kpi resolved" data-filter="resolved" onclick="toggleKpiFilter('resolved')">
       <div class="kpi-label">🟢 Resolved</div>
-      <div class="kpi-value">17</div>
+      <div class="kpi-value" id="kpiResolved">17</div>
       <div class="kpi-sub">54.8% rate</div>
     </div>
-    <div class="kpi notbug">
+    <div class="kpi notbug" data-filter="notbug" onclick="toggleKpiFilter('notbug')">
       <div class="kpi-label">⚪ Not a Bug</div>
-      <div class="kpi-value">2</div>
+      <div class="kpi-value" id="kpiNotbug">2</div>
       <div class="kpi-sub">6.5% of total</div>
     </div>
     <div class="kpi escalated">
       <div class="kpi-label">🚀 Dev Escalations</div>
-      <div class="kpi-value">11</div>
-      <div class="kpi-sub">35.5% escalation</div>
+      <div class="kpi-value" id="kpiEscalated">11</div>
+      <div class="kpi-sub" id="kpiEscalatedSub">35.5% escalation</div>
     </div>
   </div>
 
@@ -465,6 +470,7 @@ const TICKETS = [
 // ── FILTER STATE ──
 let activeStatus = 'all';
 let activeDays   = 0;
+let chartStatus, chartChannel, chartTag;
 
 const CHANNEL_LABEL = { business:'Business', lk:'LinkedIn Hackers', prospection:'Prospection' };
 const STATUS_LABEL  = { open:'🔴 Open', progress:'🟡 In Progress', resolved:'🟢 Resolved', notbug:'⚪ Not a Bug' };
@@ -484,11 +490,63 @@ function setStatus(s, btn) {
 
 function passesDateFilter(ticket) {
   if (activeDays === 0) return true;      // All time — show everything
-  if (!ticket.date) return true;          // No date — always include
+  if (!ticket.date) return false;         // No date — exclude when date filter active
   const d = new Date(ticket.date);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - activeDays);
   return d >= cutoff;
+}
+
+
+function updateKPIs(filtered) {
+  const total    = filtered.length;
+  const open     = filtered.filter(t => t.status === 'open').length;
+  const progress = filtered.filter(t => t.status === 'progress').length;
+  const resolved = filtered.filter(t => t.status === 'resolved').length;
+  const notbug   = filtered.filter(t => t.status === 'notbug').length;
+  const escalated = filtered.filter(t => !!t.clickup).length;
+  document.getElementById('kpiTotal').textContent     = total;
+  document.getElementById('kpiOpen').textContent      = open;
+  document.getElementById('kpiProgress').textContent  = progress;
+  document.getElementById('kpiResolved').textContent  = resolved;
+  document.getElementById('kpiNotbug').textContent    = notbug;
+  document.getElementById('kpiEscalated').textContent = escalated;
+  document.getElementById('kpiTotalSub').textContent  = activeDays === 0 ? 'All time' : 'Last ' + activeDays + ' days';
+  const escPct = total > 0 ? (escalated / total * 100).toFixed(1) : '0.0';
+  document.getElementById('kpiEscalatedSub').textContent = escPct + '% escalation';
+}
+
+function updateCharts(filtered) {
+  if (!chartStatus || !chartChannel || !chartTag) return;
+  const open     = filtered.filter(t => t.status === 'open').length;
+  const progress = filtered.filter(t => t.status === 'progress').length;
+  const resolved = filtered.filter(t => t.status === 'resolved').length;
+  const notbug   = filtered.filter(t => t.status === 'notbug').length;
+  chartStatus.data.datasets[0].data = [open, progress, resolved, notbug];
+  chartStatus.update();
+  const channels = ['business', 'lk', 'prospection'];
+  const byCh = channels.map(ch => filtered.filter(t => t.channel === ch));
+  chartChannel.data.datasets[0].data = byCh.map(ch => ch.filter(t => t.status === 'open').length);
+  chartChannel.data.datasets[1].data = byCh.map(ch => ch.filter(t => t.status === 'progress').length);
+  chartChannel.data.datasets[2].data = byCh.map(ch => ch.filter(t => t.status === 'resolved').length);
+  chartChannel.data.datasets[3].data = byCh.map(ch => ch.filter(t => t.status === 'notbug').length);
+  chartChannel.update();
+  const tagCounts = {};
+  filtered.forEach(t => (t.tags || []).forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; }));
+  const tagEntries = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  chartTag.data.labels = tagEntries.map(e => e[0]);
+  chartTag.data.datasets[0].data = tagEntries.map(e => e[1]);
+  chartTag.update();
+}
+
+function toggleKpiFilter(status) {
+  activeStatus = (activeStatus === status) ? 'all' : status;
+  document.querySelectorAll('.kpi[data-filter]').forEach(el => el.classList.remove('kpi-active'));
+  if (activeStatus !== 'all') {
+    const kpiEl = document.querySelector('.kpi[data-filter="' + activeStatus + '"]');
+    if (kpiEl) kpiEl.classList.add('kpi-active');
+  }
+  render();
 }
 
 function render() {
@@ -499,6 +557,8 @@ function render() {
   });
 
   document.getElementById('ticketCountLabel').textContent = '(' + filtered.length + ')';
+  updateKPIs(filtered);
+  updateCharts(filtered);
 
   if (filtered.length === 0) {
     grid.innerHTML = '<div class="no-tickets">No tickets match the current filters.</div>';
@@ -512,7 +572,7 @@ function render() {
     const stLabel = STATUS_LABEL[t.status] || t.status;
     const tagBadges = t.tags.map(tag => `<span class="tag tag-label">${tag}</span>`).join('');
     const escDot = t.clickup ? '<span class="escalated-dot" title="Dev escalation"></span>' : '';
-    const dateStr = t.date ? `<div class="ticket-date">${t.date}</div>` : '';
+    const dateStr = t.date ? `<div class="ticket-date">${t.date}</div>` : '<div class="ticket-date" style="color:var(--text3)">No date</div>';
     const slackLink = t.slack ? `<a class="ticket-link" href="${t.slack}" target="_blank">Slack ↗</a>` : '';
     const clickupLink = t.clickup ? `<a class="clickup-link" href="${t.clickup}" target="_blank">${t.clickup.split('/t/')[1]}</a>` : '';
     return `
@@ -561,7 +621,7 @@ function downloadPDF() { window.print(); }
 render();
 
 // ── CHARTS ──
-new Chart(document.getElementById('chartStatus'), {
+chartStatus = new Chart(document.getElementById('chartStatus'), {
   type: 'doughnut',
   data: {
     labels: ['Open','In Progress','Resolved','Not a Bug'],
@@ -570,7 +630,7 @@ new Chart(document.getElementById('chartStatus'), {
   options: { responsive:true, maintainAspectRatio:true, cutout:'65%', plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw}} } }
 });
 
-new Chart(document.getElementById('chartChannel'), {
+chartChannel = new Chart(document.getElementById('chartChannel'), {
   type: 'bar',
   data: {
     labels: ['Business','LinkedIn Hackers','Prospection'],
@@ -584,7 +644,7 @@ new Chart(document.getElementById('chartChannel'), {
   options: { responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{ x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}}, y:{stacked:true,grid:{color:'#f0f0ee'},ticks:{font:{size:10},stepSize:3}} } }
 });
 
-new Chart(document.getElementById('chartTag'), {
+chartTag = new Chart(document.getElementById('chartTag'), {
   type: 'bar',
   data: {
     labels: ['Trial & Billing','Campagne','CRM & Webhooks','Inbox','Import','Email','Prospects','Queue LK','Ambassadors','Extension','UI/UX'],
