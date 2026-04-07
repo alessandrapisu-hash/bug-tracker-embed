@@ -177,6 +177,18 @@
       cursor: pointer;
       transition: all 0.15s;
     }
+    .date-range-custom { display: flex; align-items: center; gap: 4px; }
+    .date-input {
+      font-size: 11px; font-weight: 500;
+      padding: 4px 8px; border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .date-input:focus { outline: none; border-color: var(--accent); }
+    .date-range-sep { font-size: 11px; color: var(--text3); }
     .dfil:hover { color: var(--text2); border-color: #c4c4c0; }
     .dfil.active { background: #eef2ff; color: var(--accent); border-color: #c7d2fe; font-weight: 600; }
 
@@ -385,6 +397,11 @@
           <button class="dfil" data-days="7" onclick="setDateFilter(7, this)">Last 7 days</button>
           <button class="dfil" data-days="30" onclick="setDateFilter(30, this)">Last 30 days</button>
         </div>
+        <div class="date-range-custom">
+          <input type="date" id="dateFrom" class="date-input" onchange="setCustomRange()" title="From date">
+          <span class="date-range-sep">→</span>
+          <input type="date" id="dateTo" class="date-input" onchange="setCustomRange()" title="To date">
+        </div>
         <div class="action-btns">
           <button class="action-btn" onclick="downloadCSV()" title="Download filtered tickets as CSV">⬇ CSV</button>
           <button class="action-btn" onclick="downloadPDF()" title="Print / Save as PDF">⬇ PDF</button>
@@ -470,6 +487,7 @@ const TICKETS = [
 // ── FILTER STATE ──
 let activeStatus = 'all';
 let activeDays   = 0;
+let activeDateFrom = null, activeDateTo = null;
 let chartStatus, chartChannel, chartTag;
 
 const CHANNEL_LABEL = { business:'Business', lk:'LinkedIn Hackers', prospection:'Prospection' };
@@ -477,10 +495,26 @@ const STATUS_LABEL  = { open:'🔴 Open', progress:'🟡 In Progress', resolved:
 
 function setDateFilter(days, btn) {
   activeDays = days;
+  activeDateFrom = null;
+  activeDateTo = null;
+  const fromEl = document.getElementById('dateFrom');
+  const toEl   = document.getElementById('dateTo');
+  if (fromEl) fromEl.value = '';
+  if (toEl)   toEl.value   = '';
   document.querySelectorAll('.dfil').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   render();
 }
+function setCustomRange() {
+  activeDateFrom = document.getElementById('dateFrom').value || null;
+  activeDateTo   = document.getElementById('dateTo').value   || null;
+  if (activeDateFrom || activeDateTo) {
+    activeDays = -1;
+    document.querySelectorAll('.dfil').forEach(b => b.classList.remove('active'));
+  }
+  render();
+}
+
 function setStatus(s, btn) {
   activeStatus = s;
   document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
@@ -489,8 +523,15 @@ function setStatus(s, btn) {
 }
 
 function passesDateFilter(ticket) {
-  if (activeDays === 0) return true;      // All time — show everything
-  if (!ticket.date) return false;         // No date — exclude when date filter active
+  // Custom date range picker takes precedence
+  if (activeDateFrom || activeDateTo) {
+    if (!ticket.date) return false;
+    if (activeDateFrom && ticket.date < activeDateFrom) return false;
+    if (activeDateTo   && ticket.date > activeDateTo)   return false;
+    return true;
+  }
+  if (activeDays === 0) return true;       // All time — show everything
+  if (!ticket.date) return false;          // No date — exclude when date filter active
   const d = new Date(ticket.date);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - activeDays);
