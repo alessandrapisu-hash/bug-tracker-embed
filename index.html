@@ -348,7 +348,7 @@
       <div class="kpi-value" id="kpiResolved">17</div>
       <div class="kpi-sub">54.8% rate</div>
     </div>
-    <div class="kpi notbug" data-filter="notabug" onclick="toggleKpiFilter('notabug')">
+    <div class="kpi notbug" data-filter="notbug" onclick="toggleKpiFilter('notbug')">
       <div class="kpi-label">⚪ Not a Bug</div>
       <div class="kpi-value" id="kpiNotbug">2</div>
       <div class="kpi-sub">6.5% of total</div>
@@ -413,7 +413,7 @@
       <button class="stab s-open" data-s="open" onclick="setStatus('open', this)">🔴 Open <span id="tabOpenCount" style="opacity:.7">(7)</span></button>
       <button class="stab s-progress" data-s="progress" onclick="setStatus('progress', this)">🟡 In Progress <span id="tabProgressCount" style="opacity:.7">(5)</span></button>
       <button class="stab s-resolved" data-s="resolved" onclick="setStatus('resolved', this)">🟢 Resolved <span id="tabResolvedCount" style="opacity:.7">(17)</span></button>
-      <button class="stab s-notbug" data-s="notabug" onclick="setStatus('notabug', this)">⚪ Not a Bug <span id="tabNotbugCount" style="opacity:.7">(2)</span></button>
+      <button class="stab s-notbug" data-s="notbug" onclick="setStatus('notbug', this)">⚪ Not a Bug <span id="tabNotbugCount" style="opacity:.7">(2)</span></button>
     </div>
     <div class="ticket-grid" id="ticketGrid"></div>
   </div>
@@ -451,37 +451,372 @@
 // ── ALL TICKETS DATA ──
 // To update: change only the values in this array. Do NOT change any CSS, HTML structure, or JS logic.
 const TICKETS = [
-  { title:"INBOX — Pb injection inbox (template / saved reply)", channel:"prospection", tags:["Inbox"], status:"open", date:"2026-03-20", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529", clickup:"" },
-  { title:"Prospect sorti de campagne apparaît toujours en cours à l'étape CRM on reply", channel:"prospection", tags:["Prospects","Campagne"], status:"resolved", date:"2026-03-26", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774540739410509", clickup:"" },
-  { title:"500 sur le duplicate de campagne", channel:"prospection", tags:["Campagne"], status:"progress", date:"2026-04-01", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099", clickup:"" },
-  { title:"Quota — les quotas ne se sont pas renew aujourd'hui", channel:"prospection", tags:["Quota","Queue LK"], status:"resolved", date:"2026-03-24", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774348226087889", clickup:"https://app.clickup.com/t/86c8zxwbq" },
-  { title:"Messages non envoyés après le délai dans la campagne", channel:"prospection", tags:["Campagne"], status:"resolved", date:"2026-03-20", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774015186356579", clickup:"" },
-  { title:"Impossible d'activer une campagne sans prospect — régression", channel:"prospection", tags:["Campagne"], status:"resolved", date:"2026-03-19", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773935005912799", clickup:"https://app.clickup.com/t/86c8xq5w6" },
-  { title:"Prospects sans photo de profil dans Waalaxy alors qu'ils en ont une sur LinkedIn", channel:"prospection", tags:["Prospects"], status:"open", date:"2026-03-24", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669", clickup:"" },
-  { title:"Queue — le nom des actions n'apparaît plus dans le dropdown", channel:"prospection", tags:["Queue LK"], status:"resolved", date:"2026-03-20", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773992848066459", clickup:"https://app.clickup.com/t/86c8y04ak" },
-  { title:"Prospects enrichis n'apparaissent pas dans le détail de campagne (email finder)", channel:"prospection", tags:["Prospects","Campagne"], status:"notbug", date:"2026-03-23", slack:"https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774270614676229", clickup:"" },
-  { title:"Synchro Make — données vides pour 'connected at' et 'profile status'", channel:"lk", tags:["CRM & Webhooks"], status:"open", date:"2026-03-20", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719", clickup:"" },
-  { title:"Ambassadeur — toutes les commissions sont pending", channel:"lk", tags:["Ambassadors"], status:"progress", date:"2026-03-19", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773909369613989", clickup:"https://app.clickup.com/t/86c8xcwuw" },
-  { title:"CRM Sync Hubspot — prospects non synchronisés après Visit", channel:"lk", tags:["CRM & Webhooks"], status:"open", date:"2026-03-18", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773833542537789", clickup:"https://app.clickup.com/t/86c8xaa8h" },
-  { title:"Ambassadeur — Remboursement / Annulation de commission non effective", channel:"lk", tags:["Ambassadors"], status:"progress", date:"2026-03-26", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774533794978789", clickup:"https://app.clickup.com/t/86c92tau2" },
-  { title:"Import stuck at 0 — LinkedIn & Sales Navigator", channel:"lk", tags:["Import"], status:"resolved", date:"2026-04-01", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919", clickup:"https://app.clickup.com/t/86c8bu6yn" },
-  { title:"Import stuck à 0 — impossible d'importer depuis une search", channel:"lk", tags:["Import"], status:"resolved", date:"2026-04-01", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719", clickup:"https://app.clickup.com/t/86c8bu6yn" },
-  { title:"Module Waalaxy introuvable sur Make", channel:"lk", tags:["CRM & Webhooks"], status:"resolved", date:"2026-03-05", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1772705543606839", clickup:"" },
-  { title:"Injections — User freemium a un pb d'injection des saved reply côté LinkedIn", channel:"lk", tags:["Inbox"], status:"resolved", date:"2026-03-18", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773852303674379", clickup:"" },
-  { title:"OAuth Hubspot — impossible de taper dans le champ 'j\'accepte le risque'", channel:"lk", tags:["CRM & Webhooks"], status:"open", date:"2026-03-26", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774514535718419", clickup:"" },
-  { title:"Imports down — prospects en erreur 'LinkedIn Member'", channel:"lk", tags:["Import"], status:"resolved", date:"2026-04-01", slack:"https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919", clickup:"https://app.clickup.com/t/86c8bu6yn" },
-  { title:"Accès au compte bloqué durant la pause de l'abonnement", channel:"business", tags:["Trial & Billing"], status:"notbug", date:"2026-03-26", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774529027821089", clickup:"" },
-  { title:"EXTENSION — Il ne parvient pas à créer son compte", channel:"business", tags:["Extension"], status:"resolved", date:"2026-03-24", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774369347990139", clickup:"" },
-  { title:"Trial LL l'emporte sur l'abo permanent même si l'abo est supérieur", channel:"business", tags:["Trial & Billing"], status:"progress", date:"2026-03-27", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774596953325749", clickup:"https://app.clickup.com/t/86c91qugt" },
-  { title:"EMAIL — Impossible de faire un test d'envoi", channel:"business", tags:["Email"], status:"resolved", date:"2026-03-27", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774623653587859", clickup:"" },
-  { title:"Email ne s'envoient pas — failed_to_get_access_token", channel:"business", tags:["Email"], status:"resolved", date:"2026-03-27", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774519704550049", clickup:"" },
-  { title:"L'heure du scheduled message est tronquée dans le side panel", channel:"business", tags:["UI/UX"], status:"open", date:"2026-03-25", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949", clickup:"" },
-  { title:"User en BRL n'a pas la page de pricing quarterly", channel:"business", tags:["Trial & Billing"], status:"resolved", date:"2026-03-24", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348546626999", clickup:"" },
-  { title:"Problème de crédits", channel:"business", tags:["Trial & Billing"], status:"resolved", date:"2026-03-30", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774858089935059", clickup:"" },
-  { title:"Inbox : send later template ajoute dans l'input du message", channel:"business", tags:["Inbox"], status:"progress", date:"2026-03-31", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774968082791669", clickup:"https://app.clickup.com/t/86c94x3xd" },
-  { title:"Emails sortent tous en erreur — account_deleted", channel:"business", tags:["Email"], status:"resolved", date:"2026-03-27", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774597002596249", clickup:"" },
-  { title:"STAFF — J'ai le trial by card alors que je suis owner de ma team", channel:"business", tags:["Trial & Billing"], status:"open", date:"2026-03-27", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319", clickup:"" },
-  { title:"Paiement en attente et toast d'erreur alors que l'abo est annulé depuis 2022", channel:"business", tags:["Trial & Billing"], status:"resolved", date:"2026-03-24", slack:"https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348357429689", clickup:"" }
+  {
+    "title": "Auto-import en pause — worker en erreur 'not found'",
+    "channel": "lk",
+    "status": "open",
+    "tags": [
+      "Import"
+    ],
+    "date": "2026-04-09",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775720946662919",
+    "clickup": null
+  },
+  {
+    "title": "Toasts succès / erreurs aux couleurs délavées",
+    "channel": "business",
+    "status": "open",
+    "tags": [
+      "UI/UX"
+    ],
+    "date": "2026-04-09",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1775724696246529",
+    "clickup": null
+  },
+  {
+    "title": "500 sur le duplicate de campagne",
+    "channel": "prospection",
+    "status": "progress",
+    "tags": [
+      "Campagne"
+    ],
+    "date": "2026-04-01",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1775035914686099",
+    "clickup": null
+  },
+  {
+    "title": "Import stuck at 0 — LinkedIn & Sales Navigator",
+    "channel": "lk",
+    "status": "resolved",
+    "tags": [
+      "Import"
+    ],
+    "date": "2026-04-01",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919",
+    "clickup": "https://app.clickup.com/t/86c8bu6yn"
+  },
+  {
+    "title": "Import stuck à 0 — impossible d'importer depuis une search",
+    "channel": "lk",
+    "status": "resolved",
+    "tags": [
+      "Import"
+    ],
+    "date": "2026-04-01",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719",
+    "clickup": "https://app.clickup.com/t/86c8bu6yn"
+  },
+  {
+    "title": "Imports down — prospects en erreur 'LinkedIn Member'",
+    "channel": "lk",
+    "status": "resolved",
+    "tags": [
+      "Import"
+    ],
+    "date": "2026-04-01",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1775029142395919",
+    "clickup": "https://app.clickup.com/t/86c8bu6yn"
+  },
+  {
+    "title": "Inbox : send later template ajoute dans l'input du message",
+    "channel": "business",
+    "status": "progress",
+    "tags": [
+      "Inbox"
+    ],
+    "date": "2026-03-31",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774968082791669",
+    "clickup": "https://app.clickup.com/t/86c94x3xd"
+  },
+  {
+    "title": "Problème de crédits",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Trial & Billing"
+    ],
+    "date": "2026-03-30",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774858089935059",
+    "clickup": null
+  },
+  {
+    "title": "Trial LL l'emporte sur l'abo permanent même si l'abo est supérieur",
+    "channel": "business",
+    "status": "progress",
+    "tags": [
+      "Trial & Billing"
+    ],
+    "date": "2026-03-27",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774596953325749",
+    "clickup": "https://app.clickup.com/t/86c91qugt"
+  },
+  {
+    "title": "EMAIL — Impossible de faire un test d'envoi",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Email"
+    ],
+    "date": "2026-03-27",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774623653587859",
+    "clickup": null
+  },
+  {
+    "title": "Email ne s'envoient pas — failed_to_get_access_token",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Email"
+    ],
+    "date": "2026-03-27",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774519704550049",
+    "clickup": null
+  },
+  {
+    "title": "Emails sortent tous en erreur — account_deleted",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Email"
+    ],
+    "date": "2026-03-27",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774597002596249",
+    "clickup": null
+  },
+  {
+    "title": "STAFF — J'ai le trial by card alors que je suis owner de ma team",
+    "channel": "business",
+    "status": "open",
+    "tags": [
+      "Trial & Billing"
+    ],
+    "date": "2026-03-27",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774601999320319",
+    "clickup": null
+  },
+  {
+    "title": "Prospect sorti de campagne apparaît toujours en cours à l'étape CRM on reply",
+    "channel": "prospection",
+    "status": "resolved",
+    "tags": [
+      "Prospects",
+      "Campagne"
+    ],
+    "date": "2026-03-26",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774540739410509",
+    "clickup": null
+  },
+  {
+    "title": "Ambassadeur — Remboursement / Annulation de commission non effective",
+    "channel": "lk",
+    "status": "progress",
+    "tags": [
+      "Ambassadors"
+    ],
+    "date": "2026-03-26",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774533794978789",
+    "clickup": "https://app.clickup.com/t/86c92tau2"
+  },
+  {
+    "title": "OAuth Hubspot — impossible de taper dans le champ 'j'accepte le risque'",
+    "channel": "lk",
+    "status": "open",
+    "tags": [
+      "CRM & Webhooks"
+    ],
+    "date": "2026-03-26",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1774514535718419",
+    "clickup": null
+  },
+  {
+    "title": "Accès au compte bloqué durant la pause de l'abonnement",
+    "channel": "business",
+    "status": "notbug",
+    "tags": [
+      "Trial & Billing"
+    ],
+    "date": "2026-03-26",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774529027821089",
+    "clickup": null
+  },
+  {
+    "title": "L'heure du scheduled message est tronquée dans le side panel",
+    "channel": "business",
+    "status": "open",
+    "tags": [
+      "UI/UX"
+    ],
+    "date": "2026-03-25",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774451089135949",
+    "clickup": null
+  },
+  {
+    "title": "Quota — les quotas ne se sont pas renew aujourd'hui",
+    "channel": "prospection",
+    "status": "resolved",
+    "tags": [
+      "Quota",
+      "Queue Actions LK"
+    ],
+    "date": "2026-03-24",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774348226087889",
+    "clickup": "https://app.clickup.com/t/86c8zxwbq"
+  },
+  {
+    "title": "Prospects sans photo de profil dans Waalaxy alors qu'ils en ont une sur LinkedIn",
+    "channel": "prospection",
+    "status": "open",
+    "tags": [
+      "Prospects"
+    ],
+    "date": "2026-03-24",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774361389955669",
+    "clickup": null
+  },
+  {
+    "title": "EXTENSION — Il ne parvient pas à créer son compte",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Extension"
+    ],
+    "date": "2026-03-24",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774369347990139",
+    "clickup": null
+  },
+  {
+    "title": "User en BRL n'a pas la page de pricing quarterly",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Trial & Billing"
+    ],
+    "date": "2026-03-24",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348546626999",
+    "clickup": null
+  },
+  {
+    "title": "Paiement en attente et toast d'erreur alors que l'abo est annulé depuis 2022",
+    "channel": "business",
+    "status": "resolved",
+    "tags": [
+      "Trial & Billing"
+    ],
+    "date": "2026-03-24",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKK09UL/p1774348357429689",
+    "clickup": null
+  },
+  {
+    "title": "Prospects enrichis n'apparaissent pas dans le détail de campagne (email finder)",
+    "channel": "prospection",
+    "status": "notbug",
+    "tags": [
+      "Campagne",
+      "Prospects"
+    ],
+    "date": "2026-03-23",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774270614676229",
+    "clickup": null
+  },
+  {
+    "title": "INBOX — Pb injection inbox (template / saved reply)",
+    "channel": "prospection",
+    "status": "open",
+    "tags": [
+      "Inbox"
+    ],
+    "date": "2026-03-20",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774026396146529",
+    "clickup": null
+  },
+  {
+    "title": "Messages non envoyés après le délai dans la campagne",
+    "channel": "prospection",
+    "status": "resolved",
+    "tags": [
+      "Campagne"
+    ],
+    "date": "2026-03-20",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1774015186356579",
+    "clickup": null
+  },
+  {
+    "title": "Queue — le nom des actions n'apparaît plus dans le dropdown",
+    "channel": "prospection",
+    "status": "resolved",
+    "tags": [
+      "Queue Actions LK"
+    ],
+    "date": "2026-03-20",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773992848066459",
+    "clickup": "https://app.clickup.com/t/86c8y04ak"
+  },
+  {
+    "title": "Synchro Make — données vides pour 'connected at' et 'profile status'",
+    "channel": "lk",
+    "status": "open",
+    "tags": [
+      "CRM & Webhooks"
+    ],
+    "date": "2026-03-20",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773998085373719",
+    "clickup": null
+  },
+  {
+    "title": "Impossible d'activer une campagne sans prospect — régression",
+    "channel": "prospection",
+    "status": "resolved",
+    "tags": [
+      "Campagne"
+    ],
+    "date": "2026-03-19",
+    "slack": "https://waapi-project.slack.com/archives/C09KDB2AEP2/p1773935005912799",
+    "clickup": "https://app.clickup.com/t/86c8xq5w6"
+  },
+  {
+    "title": "Ambassadeur — toutes les commissions sont pending",
+    "channel": "lk",
+    "status": "progress",
+    "tags": [
+      "Ambassadors"
+    ],
+    "date": "2026-03-19",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773909369613989",
+    "clickup": "https://app.clickup.com/t/86c8xcwuw"
+  },
+  {
+    "title": "CRM Sync Hubspot — prospects non synchronisés après Visit",
+    "channel": "lk",
+    "status": "open",
+    "tags": [
+      "CRM & Webhooks"
+    ],
+    "date": "2026-03-18",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773833542537789",
+    "clickup": "https://app.clickup.com/t/86c8xaa8h"
+  },
+  {
+    "title": "Injections — User freemium a un pb d'injection des saved reply côté LinkedIn",
+    "channel": "lk",
+    "status": "resolved",
+    "tags": [
+      "Inbox"
+    ],
+    "date": "2026-03-18",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1773852303674379",
+    "clickup": null
+  },
+  {
+    "title": "Module Waalaxy introuvable sur Make",
+    "channel": "lk",
+    "status": "resolved",
+    "tags": [
+      "CRM & Webhooks"
+    ],
+    "date": "2026-03-05",
+    "slack": "https://waapi-project.slack.com/archives/C09JNKEGTNY/p1772705543606839",
+    "clickup": null
+  }
 ];
 
 // ── FILTER STATE ──
@@ -544,7 +879,7 @@ function updateKPIs(filtered) {
   const open     = filtered.filter(t => t.status === 'open').length;
   const progress = filtered.filter(t => t.status === 'progress').length;
   const resolved = filtered.filter(t => t.status === 'resolved').length;
-  const notbug   = filtered.filter(t => t.status === 'notabug').length;
+  const notbug   = filtered.filter(t => t.status === 'notbug').length;
   const escalated = filtered.filter(t => !!t.clickup).length;
   document.getElementById('kpiTotal').textContent     = total;
   document.getElementById('kpiOpen').textContent      = open;
@@ -562,7 +897,7 @@ function updateCharts(filtered) {
   const open     = filtered.filter(t => t.status === 'open').length;
   const progress = filtered.filter(t => t.status === 'progress').length;
   const resolved = filtered.filter(t => t.status === 'resolved').length;
-  const notbug   = filtered.filter(t => t.status === 'notabug').length;
+  const notbug   = filtered.filter(t => t.status === 'notbug').length;
   chartStatus.data.datasets[0].data = [open, progress, resolved, notbug];
   chartStatus.update();
   const channels = ['business', 'lk', 'prospection'];
@@ -570,7 +905,7 @@ function updateCharts(filtered) {
   chartChannel.data.datasets[0].data = byCh.map(ch => ch.filter(t => t.status === 'open').length);
   chartChannel.data.datasets[1].data = byCh.map(ch => ch.filter(t => t.status === 'progress').length);
   chartChannel.data.datasets[2].data = byCh.map(ch => ch.filter(t => t.status === 'resolved').length);
-  chartChannel.data.datasets[3].data = byCh.map(ch => ch.filter(t => t.status === 'notabug').length);
+  chartChannel.data.datasets[3].data = byCh.map(ch => ch.filter(t => t.status === 'notbug').length);
   chartChannel.update();
   const tagCounts = {};
   filtered.forEach(t => (t.tags || []).forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; }));
@@ -602,7 +937,7 @@ function render() {
   document.getElementById('tabOpenCount').textContent    = '(' + dateFiltered.filter(t => t.status === 'open').length + ')';
   document.getElementById('tabProgressCount').textContent = '(' + dateFiltered.filter(t => t.status === 'progress').length + ')';
   document.getElementById('tabResolvedCount').textContent = '(' + dateFiltered.filter(t => t.status === 'resolved').length + ')';
-  document.getElementById('tabNotbugCount').textContent  = '(' + dateFiltered.filter(t => t.status === 'notabug').length + ')';
+  document.getElementById('tabNotbugCount').textContent  = '(' + dateFiltered.filter(t => t.status === 'notbug').length + ')';
   updateCharts(filtered);
 
   if (filtered.length === 0) {
