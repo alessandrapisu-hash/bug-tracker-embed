@@ -410,10 +410,10 @@
     </div>
     <div class="status-tabs">
       <button class="stab active" data-s="all" onclick="setStatus('all', this)">All</button>
-      <button class="stab s-open" data-s="open" onclick="setStatus('open', this)">🔴 Open <span style="opacity:.7">(7)</span></button>
-      <button class="stab s-progress" data-s="progress" onclick="setStatus('progress', this)">🟡 In Progress <span style="opacity:.7">(5)</span></button>
-      <button class="stab s-resolved" data-s="resolved" onclick="setStatus('resolved', this)">🟢 Resolved <span style="opacity:.7">(17)</span></button>
-      <button class="stab s-notbug" data-s="notbug" onclick="setStatus('notbug', this)">⚪ Not a Bug <span style="opacity:.7">(2)</span></button>
+      <button class="stab s-open" data-s="open" onclick="setStatus('open', this)">🔴 Open <span id="tabOpenCount" style="opacity:.7">(7)</span></button>
+      <button class="stab s-progress" data-s="progress" onclick="setStatus('progress', this)">🟡 In Progress <span id="tabProgressCount" style="opacity:.7">(5)</span></button>
+      <button class="stab s-resolved" data-s="resolved" onclick="setStatus('resolved', this)">🟢 Resolved <span id="tabResolvedCount" style="opacity:.7">(17)</span></button>
+      <button class="stab s-notbug" data-s="notbug" onclick="setStatus('notbug', this)">⚪ Not a Bug <span id="tabNotbugCount" style="opacity:.7">(2)</span></button>
     </div>
     <div class="ticket-grid" id="ticketGrid"></div>
   </div>
@@ -599,6 +599,10 @@ function render() {
 
   document.getElementById('ticketCountLabel').textContent = '(' + filtered.length + ')';
   updateKPIs(dateFiltered);
+  document.getElementById('tabOpenCount').textContent    = '(' + dateFiltered.filter(t => t.status === 'open').length + ')';
+  document.getElementById('tabProgressCount').textContent = '(' + dateFiltered.filter(t => t.status === 'progress').length + ')';
+  document.getElementById('tabResolvedCount').textContent = '(' + dateFiltered.filter(t => t.status === 'resolved').length + ')';
+  document.getElementById('tabNotbugCount').textContent  = '(' + dateFiltered.filter(t => t.status === 'notbug').length + ')';
   updateCharts(filtered);
 
   if (filtered.length === 0) {
