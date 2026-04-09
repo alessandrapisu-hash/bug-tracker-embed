@@ -348,7 +348,7 @@
       <div class="kpi-value" id="kpiResolved">17</div>
       <div class="kpi-sub">54.8% rate</div>
     </div>
-    <div class="kpi notbug" data-filter="notbug" onclick="toggleKpiFilter('notbug')">
+    <div class="kpi notbug" data-filter="notabug" onclick="toggleKpiFilter('notabug')">
       <div class="kpi-label">⚪ Not a Bug</div>
       <div class="kpi-value" id="kpiNotbug">2</div>
       <div class="kpi-sub">6.5% of total</div>
@@ -413,7 +413,7 @@
       <button class="stab s-open" data-s="open" onclick="setStatus('open', this)">🔴 Open <span id="tabOpenCount" style="opacity:.7">(7)</span></button>
       <button class="stab s-progress" data-s="progress" onclick="setStatus('progress', this)">🟡 In Progress <span id="tabProgressCount" style="opacity:.7">(5)</span></button>
       <button class="stab s-resolved" data-s="resolved" onclick="setStatus('resolved', this)">🟢 Resolved <span id="tabResolvedCount" style="opacity:.7">(17)</span></button>
-      <button class="stab s-notbug" data-s="notbug" onclick="setStatus('notbug', this)">⚪ Not a Bug <span id="tabNotbugCount" style="opacity:.7">(2)</span></button>
+      <button class="stab s-notbug" data-s="notabug" onclick="setStatus('notabug', this)">⚪ Not a Bug <span id="tabNotbugCount" style="opacity:.7">(2)</span></button>
     </div>
     <div class="ticket-grid" id="ticketGrid"></div>
   </div>
@@ -544,7 +544,7 @@ function updateKPIs(filtered) {
   const open     = filtered.filter(t => t.status === 'open').length;
   const progress = filtered.filter(t => t.status === 'progress').length;
   const resolved = filtered.filter(t => t.status === 'resolved').length;
-  const notbug   = filtered.filter(t => t.status === 'notbug').length;
+  const notbug   = filtered.filter(t => t.status === 'notabug').length;
   const escalated = filtered.filter(t => !!t.clickup).length;
   document.getElementById('kpiTotal').textContent     = total;
   document.getElementById('kpiOpen').textContent      = open;
@@ -562,7 +562,7 @@ function updateCharts(filtered) {
   const open     = filtered.filter(t => t.status === 'open').length;
   const progress = filtered.filter(t => t.status === 'progress').length;
   const resolved = filtered.filter(t => t.status === 'resolved').length;
-  const notbug   = filtered.filter(t => t.status === 'notbug').length;
+  const notbug   = filtered.filter(t => t.status === 'notabug').length;
   chartStatus.data.datasets[0].data = [open, progress, resolved, notbug];
   chartStatus.update();
   const channels = ['business', 'lk', 'prospection'];
@@ -570,7 +570,7 @@ function updateCharts(filtered) {
   chartChannel.data.datasets[0].data = byCh.map(ch => ch.filter(t => t.status === 'open').length);
   chartChannel.data.datasets[1].data = byCh.map(ch => ch.filter(t => t.status === 'progress').length);
   chartChannel.data.datasets[2].data = byCh.map(ch => ch.filter(t => t.status === 'resolved').length);
-  chartChannel.data.datasets[3].data = byCh.map(ch => ch.filter(t => t.status === 'notbug').length);
+  chartChannel.data.datasets[3].data = byCh.map(ch => ch.filter(t => t.status === 'notabug').length);
   chartChannel.update();
   const tagCounts = {};
   filtered.forEach(t => (t.tags || []).forEach(tag => { tagCounts[tag] = (tagCounts[tag] || 0) + 1; }));
@@ -602,7 +602,7 @@ function render() {
   document.getElementById('tabOpenCount').textContent    = '(' + dateFiltered.filter(t => t.status === 'open').length + ')';
   document.getElementById('tabProgressCount').textContent = '(' + dateFiltered.filter(t => t.status === 'progress').length + ')';
   document.getElementById('tabResolvedCount').textContent = '(' + dateFiltered.filter(t => t.status === 'resolved').length + ')';
-  document.getElementById('tabNotbugCount').textContent  = '(' + dateFiltered.filter(t => t.status === 'notbug').length + ')';
+  document.getElementById('tabNotbugCount').textContent  = '(' + dateFiltered.filter(t => t.status === 'notabug').length + ')';
   updateCharts(filtered);
 
   if (filtered.length === 0) {
