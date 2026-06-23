@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rapport Bugs Support — 23 juin 2026</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f6fa; color: #1a1a2e; }
+
+    .banner {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      padding: 32px 40px;
+    }
+    .banner h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+    .banner .date { opacity: .7; font-size: .9rem; margin-bottom: 20px; }
+    .banner .trend {
+      background: rgba(255,255,255,.08);
+      border-left: 4px solid #e94560;
+      padding: 14px 18px;
+      border-radius: 6px;
+      font-size: .92rem;
+      line-height: 1.6;
+    }
+    .banner .trend strong { color: #f7b731; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+    .section-title {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #888;
+      margin: 36px 0 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .badge.critical { background: #ffe0e0; color: #c0392b; }
+    .badge.high     { background: #fff3cd; color: #b7791f; }
+    .badge.medium   { background: #fef9e7; color: #d4a017; }
+    .badge.low      { background: #e8f5e9; color: #2e7d32; }
+    .badge.resolved { background: #e8f5e9; color: #2e7d32; }
+
+    .card-header h2 { font-size: 1rem; font-weight: 600; flex: 1; }
+    .card-body { padding: 18px 20px; }
+    .card-body p { font-size: .9rem; line-height: 1.65; color: #333; margin-bottom: 10px; }
+    .card-body p:last-child { margin-bottom: 0; }
+
+    .label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #888; margin-bottom: 4px; }
+
+    .workaround {
+      background: #f0f8ff;
+      border-left: 3px solid #3498db;
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: .88rem;
+      color: #1a5276;
+      margin: 10px 0;
+    }
+
+    .clickup-link {
+      display: inline-block;
+      font-size: .8rem;
+      background: #7b68ee22;
+      color: #5b4fcf;
+      padding: 3px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .examples-block {
+      margin-top: 14px;
+      border: 1.5px dashed #ddd;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .examples-block .label { margin-bottom: 8px; }
+    .example-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      font-size: .88rem;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .example-item:last-child { border-bottom: none; }
+    .example-item .dot { width: 6px; height: 6px; border-radius: 50%; background: #aaa; flex-shrink: 0; }
+    .example-item.add-line .dot { background: #ddd; }
+    .example-item.add-line span { color: #aaa; font-style: italic; }
+
+    .channel-tag {
+      font-size: .72rem;
+      background: #eee;
+      color: #555;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px;
+      font-size: .8rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="banner">
+  <h1>📋 Rapport Bugs Support — 22 & 23 juin 2026</h1>
+  <p class="date">Généré le 23 juin 2026 · Sources : #support-business, #support-linkedin-hackers, #support-prospection</p>
+  <div class="trend">
+    <strong>🔍 Tendance principale :</strong> La quasi-totalité des bugs remontés ces 2 derniers jours sont liés à la <strong>transition vers Waalaxy Cloud sans extension Chrome</strong>. On observe 3 axes : confusion UX (fonctionnalités qui semblent disparues), fonctionnalités manquantes non encore portées en cloud, et instabilité cloud liée aux cookies Sales Navigator. Aucun bug de campagne ou billing remonté sur la période.
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SECTION BUSINESS -->
+  <div class="section-title">📘 #support-business</div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge critical">🔴 Critique</span>
+      <h2>App — "We cannot reach your planet" / déconnexions en boucle</h2>
+      <span class="channel-tag">#support-business</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>Un user (abo Advanced Yearly) ne peut pas accéder à l'app. L'erreur "we cannot reach your planet" apparaît. Il arrive à se connecter 2 minutes maximum puis ça coupe systématiquement. Plusieurs sessions TeamViewer tentées avec Adrien (dev), ML et Joanne. Aucune erreur Sentry détectée → Lucas a conclu à un probable souci d'extension ou front.</p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Tester en réactivant l'extension Chrome. Un user de Joanne s'en est sorti de cette façon — résolution non confirmée à 100%.
+      </div>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item"><div class="dot"></div><span>User ID : <em>à compléter</em></span></div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici (User ID + description courte)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION LINKEDIN-HACKERS -->
+  <div class="section-title">📘 #support-linkedin-hackers</div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge high">🟠 Élevé</span>
+      <h2>Import individuel in-app disparu pour user payant</h2>
+      <span class="channel-tag">#support-linkedin-hackers</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>Un user payant ne voit plus l'import individuel in-app. Cause identifiée par Simon : quand l'extension est encore active, l'import in-app ne s'affiche pas (comportement voulu côté code, pas un bug technique). C'est une confusion UX post-suppression de l'extension.</p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Utiliser l'extension pour importer depuis les profils LinkedIn directement.
+      </div>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item"><div class="dot"></div><span>User ID : <em>à compléter</em></span></div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge high">🟠 Élevé</span>
+      <h2>Import via side panel — impossible pour les membres de team</h2>
+      <span class="channel-tag">#support-linkedin-hackers</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>On ne peut plus importer dans le compte d'un membre de la team via le side panel. Confirmé par Simon : cette fonctionnalité n'a pas été implémentée dans les imports cloud "par simplicité". Mike remonte aussi l'absence de barre de progression et l'impossibilité d'ajouter à une campagne post-import.</p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Aucun pour l'instant. À informer le user que c'est en cours.
+      </div>
+      <a class="clickup-link" href="#">ClickUp : 86cad2ud1</a>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item"><div class="dot"></div><span>Remonté par Mike (staff)</span></div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge high">🟠 Élevé</span>
+      <h2>Cloud — déconnexions en boucle (cookies)</h2>
+      <span class="channel-tag">#support-linkedin-hackers</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>Un user subit des déconnexions répétées avec un message d'erreur cookies. Le Lifeline affiche <code>Puppeteer relogin count &gt; 8</code>. Probablement lié à un souci de cookies Sales Navigator : dès qu'une requête SN est lancée, ça déconnecte. Raph propose de reset le relogin count sur LL + d'ajouter un bouton LL pour ça.</p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Reset du relogin count côté LL (à faire manuellement en attendant le bouton).
+      </div>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item"><div class="dot"></div><span>User ID : <em>à compléter</em></span></div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge medium">🟡 Modéré</span>
+      <h2>User payant — listes Sales Nav introuvables dans le sélecteur</h2>
+      <span class="channel-tag">#support-linkedin-hackers</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>User cloud connecté + Sales Navigator, mais ses listes SN n'apparaissent pas dans le sélecteur d'import. Cause identifiée par Simon : souci de cookies Sales Navigator depuis le login. Dès qu'une requête Sales est faite, ça déconnecte. Bug toujours ouvert en fin de journée du 23.</p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Aucun confirmé pour l'instant. Joanne attendait toujours une réponse à 13h45.
+      </div>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item"><div class="dot"></div><span>User ID : <em>à compléter</em></span></div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge resolved">✅ Résolu</span>
+      <h2>Imports via extension — fonctionnels ?</h2>
+      <span class="channel-tag">#support-linkedin-hackers</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>Chloé D. a demandé si les imports via extension fonctionnent encore. Joanne a confirmé que ça marche de son côté. Résolu rapidement, pas d'action supplémentaire nécessaire.</p>
+    </div>
+  </div>
+
+  <!-- SECTION PROSPECTION -->
+  <div class="section-title">📘 #support-prospection</div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge high">🟠 Élevé</span>
+      <h2>Limite d'import affichée à "0" alors que la limite n'est pas atteinte</h2>
+      <span class="channel-tag">#support-prospection</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>Mike (staff) voit l'alerte "0 imports restants" alors que sa limite n'est pas atteinte. Cause : les comptes staff ont une logique différente (pas de limite réelle). Raph confirme que c'est un bug connu mais non-fixé car jugé staff-only. <strong>⚠️ Attention : si la logique est similaire pour certains users Business, ça peut générer de la friction.</strong></p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Expliquer au user que l'affichage est erroné et qu'il peut continuer à importer. Vérifier si c'est un compte staff ou Business.
+      </div>
+      <a class="clickup-link" href="#">ClickUp : 86cad7x1p</a>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item"><div class="dot"></div><span>Remonté par Mike (staff)</span></div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici (préciser si staff ou Business)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge medium">🟡 Modéré</span>
+      <h2>Panel import — requêtes inutiles sur events/groups à chaque ouverture</h2>
+      <span class="channel-tag">#support-prospection</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>À chaque ouverture du panel d'import ou changement de type d'import, 2 requêtes partent automatiquement pour fetch events + groups, même si le user n'a pas cliqué sur ces options. Mike suggère de ne lancer le fetch que si le user clique. Rémi va regarder après l'injection.</p>
+      <div class="workaround">
+        💡 <strong>Impact user :</strong> Ralentissement potentiel, pas de bug bloquant. À surveiller si ça génère des remontées.
+      </div>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici si remonté par un user</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="badge medium">🟡 Modéré</span>
+      <h2>Bouton import sur la Home — n'ouvre pas le side panel</h2>
+      <span class="channel-tag">#support-prospection</span>
+    </div>
+    <div class="card-body">
+      <div class="label">Description</div>
+      <p>Le bouton d'import sur la page Home ne permet pas d'ouvrir directement le side panel d'imports. Mike demande si on peut modifier ce comportement. Rémi confirme que c'est faisable avec quelques modifications.</p>
+      <div class="workaround">
+        💡 <strong>Contournement :</strong> Aller directement dans la section Imports via le menu de navigation.
+      </div>
+      <div class="examples-block">
+        <div class="label">Exemples clients</div>
+        <div class="example-item add-line"><div class="dot"></div><span>➕ Ajouter un exemple ici si remonté par un user</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Rapport généré le 23 juin 2026 — à compléter par l'équipe support au fil des remontées
+</footer>
+
+</body>
+</html>
